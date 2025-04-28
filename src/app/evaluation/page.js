@@ -23,24 +23,43 @@ export default function EvaluationPage() {
 
   const [competences, setCompetences] = useState({
     savoir: [
-      { critere: "Connaissance des procédures", note: "", axeAmelioration: "" },
-      { critere: "Connaissance du processus", note: "", axeAmelioration: "" },
+      { critere: "Acquis de la formation initiale", note: "", axeAmelioration: "" },
+      { critere: "Acquis de la formation continue", note: "", axeAmelioration: "" },
+      { critere: "Connaissance de l’entreprise", note: "", axeAmelioration: "" },
+      { critere: "Connaissance des procédures liées à son activité", note: "", axeAmelioration: "" },
       { critere: "Connaissance des logiciels d'exploitation", note: "", axeAmelioration: "" },
-      { critere: "Connaissance technique bancaire", note: "", axeAmelioration: "" }
+      { critere: "Connaissance des logiciels techniques/bancaires", note: "", axeAmelioration: "" }
     ],
     savoirFaire: [
       { critere: "Organisation du travail", note: "", axeAmelioration: "" },
-      { critere: "Fiabilité des tâches", note: "", axeAmelioration: "" },
-      { critere: "Respect des délais", note: "", axeAmelioration: "" }
+      { critere: "Application des procédures", note: "", axeAmelioration: "" },
+      { critere: "Fiabilité des tâches exécutées", note: "", axeAmelioration: "" },
+      { critere: "Fiabilité des contrôles réalisés", note: "", axeAmelioration: "" },
+      { critere: "Reporting : Fiabilité des infos / Respect délais", note: "", axeAmelioration: "" }
     ],
     savoirEtre: [
       { critere: "Autonomie", note: "", axeAmelioration: "" },
-      { critere: "Implication", note: "", axeAmelioration: "" },
-      { critere: "Ponctualité", note: "", axeAmelioration: "" }
+      { critere: "Initiative", note: "", axeAmelioration: "" },
+      { critere: "Rigueur", note: "", axeAmelioration: "" },
+      { critere: "Disponibilité", note: "", axeAmelioration: "" },
+      { critere: "Courtoisie", note: "", axeAmelioration: "" },
+      { critere: "Ponctualité", note: "", axeAmelioration: "" },
+      { critere: "Travail d'équipe", note: "", axeAmelioration: "" },
+      { critere: "Assiduité", note: "", axeAmelioration: "" },
+      { critere: "Présentation", note: "", axeAmelioration: "" },
+      { critere: "Humanisme", note: "", axeAmelioration: "" },
+      { critere: "Agilité", note: "", axeAmelioration: "" },
+      { critere: "Résilience", note: "", axeAmelioration: "" },
+      { critere: "Diversité", note: "", axeAmelioration: "" },
+      { critere: "Innovation", note: "", axeAmelioration: "" },
+      { critere: "Éco-responsabilité", note: "", axeAmelioration: "" }
     ],
     discipline: [
+      { critere: "Respect du code de déontologie", note: "", axeAmelioration: "" },
       { critere: "Respect du règlement intérieur", note: "", axeAmelioration: "" },
-      { critere: "Respect de la charte informatique", note: "", axeAmelioration: "" }
+      { critere: "Respect du livret sécurité informatique", note: "", axeAmelioration: "" },
+      { critere: "Respect de la charte informatique", note: "", axeAmelioration: "" },
+      { critere: "Respect de la charte métier", note: "", axeAmelioration: "" }
     ]
   });
 
