@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-const BACKEND_URL = "http://localhost:7000/Evaluation";
+const BACKEND_URL = "https://backendeva.onrender.com/Evaluation";
 
 export default function EvaluationPage() {
   // États
@@ -159,18 +159,29 @@ export default function EvaluationPage() {
 
           {/* Compétences professionnelles */}
           <Section title="Compétences professionnelles">
-            {Object.entries(competences).map(([category, items]) => (
-              <div key={category} className="space-y-2">
-                <h4 className="font-bold">{category.toUpperCase()}</h4>
-                {items.map((item, idx) => (
-                  <Grid2 key={idx}>
-                    <SelectNote name="note" value={item.critere} onChange={(e) => handleNestedArrayChange(e, category, idx)} />
-                    <Input name="axeAmelioration" value={item.axeAmelioration} onChange={(e) => handleNestedArrayChange(e, category, idx)} placeholder="Axe d'amélioration" />
-                  </Grid2>
-                ))}
-              </div>
-            ))}
-          </Section>
+  {Object.entries(competences).map(([category, items]) => (
+    <div key={category} className="space-y-4">
+      <h3 className="text-xl font-bold">{category.toUpperCase()}</h3>
+      {items.map((item, idx) => (
+        <div key={idx} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center border p-4 rounded bg-white">
+          <p className="font-medium">{item.critere}</p> {/* Le critère bien visible */}
+          <SelectNote
+            name="note"
+            value={item.note}
+            onChange={(e) => handleNestedArrayChange(e, category, idx)}
+          />
+          <Input
+            name="axeAmelioration"
+            value={item.axeAmelioration}
+            onChange={(e) => handleNestedArrayChange(e, category, idx)}
+            placeholder="Axe d'amélioration"
+          />
+        </div>
+      ))}
+    </div>
+  ))}
+</Section>
+
 
           {/* Appréciation Globale */}
           <Section title="Appréciation Globale">
