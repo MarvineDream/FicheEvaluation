@@ -1,11 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import useAuth from "../hooks/useAuth";
+import { useRouter } from "next/navigation"; 
 
 const BACKEND_URL = "https://backendeva.onrender.com/Evaluation";
 
 export default function EvaluationPage() {
   // États
+  const { user, isLoading, logout } = useAuth(); // ✅ Sécurisation avec auth
+  const router = useRouter();
+ 
+
   const [agent, setAgent] = useState({
     nom: "", prenom: "", emploi: "", direction: "", typeContrat: "", dateEmbauche: "", dateDebutCDD: "", dateFinCDD: "", dureeCDD: ""
   });
@@ -22,7 +28,7 @@ export default function EvaluationPage() {
   ]);
 
   const [competences, setCompetences] = useState({
-    savoir: [
+    savoir: "Connaissance théorique" [
       { critere: "Acquis de la formation initiale", note: "", axeAmelioration: "" },
       { critere: "Acquis de la formation continue", note: "", axeAmelioration: "" },
       { critere: "Connaissance de l’entreprise", note: "", axeAmelioration: "" },
@@ -30,14 +36,14 @@ export default function EvaluationPage() {
       { critere: "Connaissance des logiciels d'exploitation", note: "", axeAmelioration: "" },
       { critere: "Connaissance des logiciels techniques/bancaires", note: "", axeAmelioration: "" }
     ],
-    savoirFaire: [
+    savoirFaire: "Connaissances techniques"[
       { critere: "Organisation du travail", note: "", axeAmelioration: "" },
       { critere: "Application des procédures", note: "", axeAmelioration: "" },
       { critere: "Fiabilité des tâches exécutées", note: "", axeAmelioration: "" },
       { critere: "Fiabilité des contrôles réalisés", note: "", axeAmelioration: "" },
       { critere: "Reporting : Fiabilité des infos / Respect délais", note: "", axeAmelioration: "" }
     ],
-    savoirEtre: [
+    savoirEtre: "Attitudes et comportements" [
       { critere: "Autonomie", note: "", axeAmelioration: "" },
       { critere: "Initiative", note: "", axeAmelioration: "" },
       { critere: "Rigueur", note: "", axeAmelioration: "" },
@@ -102,13 +108,16 @@ export default function EvaluationPage() {
       });
       if (!res.ok) throw new Error("Erreur");
       alert("✅ Fiche d'évaluation envoyée !");
-      window.location.reload();
+      router.push("/"); // Redirection vers la page d'accueil ou une autre page
     } catch (err) {
       console.error(err);
       alert("❌ Erreur d'envoi");
     }
   };
 
+  if (isLoading) return <div className="flex justify-center items-center min-h-screen">Chargement...</div>;
+
+  
   return (
     <div className="flex">
       {/* Sidebar */}
