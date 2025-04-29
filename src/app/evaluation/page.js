@@ -117,7 +117,7 @@ export default function EvaluationPage() {
 
   if (isLoading) return <div className="flex justify-center items-center min-h-screen">Chargement...</div>;
 
-  
+
   return (
     <div className="flex">
       {/* Sidebar */}
@@ -127,7 +127,7 @@ export default function EvaluationPage() {
           <li className="mb-2">
             <a href="#" className="hover:underline">Formulaire d Évaluation</a>
           </li>
-          {/* Ajoutez d'autres liens ici si nécessaire */}
+          {/* Ajout d'autres liens ici si nécessaire */}
         </ul>
       </aside>
 
@@ -190,9 +190,9 @@ export default function EvaluationPage() {
   {Object.entries(competences).map(([category, items]) => (
     <div key={category} className="space-y-4">
       <h3 className="text-xl font-bold">{category.toUpperCase()}</h3>
-      {items.map((item, idx) => (
+      {Array.isArray(items) && items.map((item, idx) => (
         <div key={idx} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center border p-4 rounded bg-white">
-          <p className="font-medium">{item.critere}</p> {/* Le critère bien visible */}
+          <p className="font-medium">{item.critere}</p> {}
           <SelectNote
             name="note"
             value={item.note}
