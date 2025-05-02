@@ -2,10 +2,19 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  Container,
+  TextField,
+  Button,
+  Typography,
+  Box,
+  Paper,
+  Alert,
+  Link
+} from "@mui/material";
 
 export default function LoginPage() {
   const router = useRouter();
-  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -26,47 +35,64 @@ export default function LoginPage() {
         throw new Error(message || "Erreur de connexion");
       }
 
-      const { token, user } = await res.json();
-
-      // Stocker le token JWT dans localStorage
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-
-      // Rediriger vers l'accueil ou la fiche d'évaluation
-      router.push("/evaluation");
-
+      const data = await res.json();
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      router.push("/with-sidebar/dashboard");
     } catch (err) {
       setError(err.message);
     }
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
-      <form onSubmit={handleLogin} className="bg-white p-8 rounded shadow-md w-full max-w-sm space-y-4">
-        <h1 className="text-2xl font-bold text-center">Connexion</h1>
+    <Container maxWidth="xs">
+      <Paper elevation={3} sx={{ p: 4, mt: 8 }}>
+        <Typography variant="h5" fontWeight="bold" align="center" mb={3}>
+          Connexion
+        </Typography>
 
-        {error && <p className="text-red-500 text-center">{error}</p>}
+        {error && <Alert severity="error">{error}</Alert>}
 
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="border px-3 py-2 rounded w-full"
-          required
-        />
-        <input
-          type="password"
-          placeholder="Mot de passe"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="border px-3 py-2 rounded w-full"
-          required
-        />
-        <button type="submit" className="bg-indigo-600 text-white py-2 px-4 rounded w-full">
-          🔐 Se connecter
-        </button>
-      </form>
-    </main>
+        <Box component="form" onSubmit={handleLogin} noValidate sx={{ mt: 2 }}>
+          <TextField
+            label="Email"
+            type="email"
+            value={email}
+            fullWidth
+            margin="normal"
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <TextField
+            label="Mot de passe"
+            type="password"
+            value={password}
+            fullWidth
+            margin="normal"
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <Button
+            type="submit"
+            variant="contained"
+            fullWidth
+            sx={{ mt: 3 }}
+          >
+            Se connecter
+          </Button>
+        </Box>
+
+        <Typography align="center" mt={3}>
+          Pas encore de compte ?{" "}
+          <Link
+            href="/register"
+            underline="hover"
+            sx={{ fontWeight: "bold", cursor: "pointer" }}
+          >
+            S’inscrire
+          </Link>
+        </Typography>
+      </Paper>
+    </Container>
   );
 }

@@ -2,10 +2,19 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  Container,
+  TextField,
+  Button,
+  Typography,
+  Box,
+  Paper,
+  Alert,
+  Link
+} from "@mui/material";
 
 export default function RegisterPage() {
   const router = useRouter();
-  
   const [nom, setNom] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,55 +43,78 @@ export default function RegisterPage() {
       }
 
       alert("✅ Inscription réussie !");
-      router.push("/login"); // Redirection vers la page de connexion
+      router.push("/login"); // Redirection vers la page de login
     } catch (err) {
       setError(err.message);
     }
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
-      <form onSubmit={handleRegister} className="bg-white p-8 rounded shadow-md w-full max-w-sm space-y-4">
-        <h1 className="text-2xl font-bold text-center">Créer un compte</h1>
+    <Container maxWidth="xs">
+      <Paper elevation={3} sx={{ p: 4, mt: 8 }}>
+        <Typography variant="h5" fontWeight="bold" align="center" mb={3}>
+          Créer un compte
+        </Typography>
 
-        {error && <p className="text-red-500 text-center">{error}</p>}
+        {error && <Alert severity="error">{error}</Alert>}
 
-        <input
-          type="text"
-          placeholder="Nom complet"
-          value={nom}
-          onChange={(e) => setNom(e.target.value)}
-          className="border px-3 py-2 rounded w-full"
-          required
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="border px-3 py-2 rounded w-full"
-          required
-        />
-        <input
-          type="password"
-          placeholder="Mot de passe"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="border px-3 py-2 rounded w-full"
-          required
-        />
-        <input
-          type="password"
-          placeholder="Confirmer le mot de passe"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          className="border px-3 py-2 rounded w-full"
-          required
-        />
-        <button type="submit" className="bg-green-600 text-white py-2 px-4 rounded w-full">
-          ➕ S inscrire
-        </button>
-      </form>
-    </main>
+        <Box component="form" onSubmit={handleRegister} noValidate sx={{ mt: 2 }}>
+          <TextField
+            label="Nom complet"
+            value={nom}
+            fullWidth
+            margin="normal"
+            onChange={(e) => setNom(e.target.value)}
+            required
+          />
+          <TextField
+            label="Email"
+            type="email"
+            value={email}
+            fullWidth
+            margin="normal"
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <TextField
+            label="Mot de passe"
+            type="password"
+            value={password}
+            fullWidth
+            margin="normal"
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <TextField
+            label="Confirmer le mot de passe"
+            type="password"
+            value={confirmPassword}
+            fullWidth
+            margin="normal"
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
+          <Button
+            type="submit"
+            variant="contained"
+            fullWidth
+            sx={{ mt: 3 }}
+          >
+            ➕ S’inscrire
+          </Button>
+        </Box>
+
+        <Typography align="center" mt={3}>
+          Déjà un compte ?{" "}
+          <Link
+            href="/login"
+            underline="hover"
+            sx={{ fontWeight: "bold", cursor: "pointer" }}
+          >
+            Se connecter
+          </Link>
+        </Typography>
+      </Paper>
+    </Container>
   );
 }
