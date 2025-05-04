@@ -20,29 +20,43 @@ export default function LoginPage() {
   const [error, setError] = useState("");
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setError("");
+  e.preventDefault();
+  setError("");
 
-    try {
-      const res = await fetch("https://backendeva.onrender.com/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
-      });
+  try {
+    const res = await fetch("https://backendeva.onrender.com/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
 
-      if (!res.ok) {
-        const { message } = await res.json();
-        throw new Error(message || "Erreur de connexion");
-      }
-
-      const data = await res.json();
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      router.push("/with-sidebar/dashboard");
-    } catch (err) {
-      setError(err.message);
+    if (!res.ok) {
+      const { message } = await res.json();
+      throw new Error(message || "Erreur de connexion");
     }
-  };
+
+    const data = await res.json();
+    const { token, user } = data;
+
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(user));
+
+    // 🔁 Redirection en fonction du rôle
+    switch (user.role) {
+      case "admin":
+      case "rh":
+        router.push("/with-sidebar/dashboard");
+        break;
+      case "manager":
+        router.push(`/with-sidebar/manager-dashboard?departement=${user.departement}`);
+        break;
+      default:
+        throw new Error("Rôle utilisateur non reconnu");
+    }
+  } catch (err) {
+    setError(err.message);
+  }
+};
 
   return (
     <Container maxWidth="xs">

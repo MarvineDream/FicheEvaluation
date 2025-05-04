@@ -1,8 +1,26 @@
 "use client";
 
-import { Box, Container, Typography, Grid, Paper, List, ListItem, ListItemText, Button, Chip } from "@mui/material";
+import {
+  Box,
+  Container,
+  Typography,
+  Grid,
+  Paper,
+  List,
+  ListItem,
+  ListItemText,
+  Button,
+  Chip,
+} from "@mui/material";
 import { useEffect, useState } from "react";
-import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from "chart.js";
+import {
+  Chart as ChartJS,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  Legend,
+} from "chart.js";
 import { Bar } from "react-chartjs-2";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
@@ -14,22 +32,16 @@ export default function ManagerDashboardPage() {
   useEffect(() => {
     const fetchStaff = async () => {
       try {
-        const res = await fetch("https://backendeva.onrender.com/staff/manager", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-          }
-        }); // 🔄 Route filtrée par manager
+        const res = await fetch("https://backendeva.onrender.com/staff");
         const data = await res.json();
-        setStaff(data);
 
-        // Préparer les données du graphique
-        const counts = data.reduce(
-          (acc, s) => {
-            acc[s.typeContrat] = (acc[s.typeContrat] || 0) + 1;
-            return acc;
-          },
-          {}
-        );
+        const staffArray = Array.isArray(data) ? data : [];
+
+        // Statistiques des types de contrat
+        const counts = staffArray.reduce((acc, s) => {
+          acc[s.typeContrat] = (acc[s.typeContrat] || 0) + 1;
+          return acc;
+        }, {});
 
         setChartData({
           labels: Object.keys(counts),
@@ -41,8 +53,11 @@ export default function ManagerDashboardPage() {
             },
           ],
         });
+
+        setStaff(staffArray);
       } catch (error) {
         console.error("Erreur chargement staff manager", error);
+        setStaff([]);
       }
     };
 

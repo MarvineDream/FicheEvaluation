@@ -37,7 +37,7 @@ export default function RegisterPage() {
     }
 
     try {
-      const res = await fetch("http://localhost:7000/auth/register", {
+      const res = await fetch("https://backendeva.onrender.com/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
