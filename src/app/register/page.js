@@ -10,7 +10,11 @@ import {
   Box,
   Paper,
   Alert,
-  Link
+  Link,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl
 } from "@mui/material";
 
 export default function RegisterPage() {
@@ -19,6 +23,8 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [role, setRole] = useState("");
+  const [departement, setDepartement] = useState("");
   const [error, setError] = useState("");
 
   const handleRegister = async (e) => {
@@ -31,10 +37,16 @@ export default function RegisterPage() {
     }
 
     try {
-      const res = await fetch("https://backendeva.onrender.com/auth/register", {
+      const res = await fetch("http://localhost:7000/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nom, email, password })
+        body: JSON.stringify({
+          nom,
+          email,
+          password,
+          role,
+          departement: role === "manager" ? departement : undefined
+        })
       });
 
       if (!res.ok) {
@@ -43,7 +55,7 @@ export default function RegisterPage() {
       }
 
       alert("✅ Inscription réussie !");
-      router.push("/login"); // Redirection vers la page de login
+      router.push("/login");
     } catch (err) {
       setError(err.message);
     }
@@ -94,23 +106,39 @@ export default function RegisterPage() {
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
           />
-          <Button
-            type="submit"
-            variant="contained"
-            fullWidth
-            sx={{ mt: 3 }}
-          >
+
+          <FormControl fullWidth margin="normal" required>
+            <InputLabel>Rôle</InputLabel>
+            <Select
+              value={role}
+              label="Rôle"
+              onChange={(e) => setRole(e.target.value)}
+            >
+              <MenuItem value="admin">Admin</MenuItem>
+              <MenuItem value="rh">RH</MenuItem>
+              <MenuItem value="manager">Manager</MenuItem>
+            </Select>
+          </FormControl>
+
+          {role === "manager" && (
+            <TextField
+              label="Département"
+              value={departement}
+              fullWidth
+              margin="normal"
+              onChange={(e) => setDepartement(e.target.value)}
+              required
+            />
+          )}
+
+          <Button type="submit" variant="contained" fullWidth sx={{ mt: 3 }}>
             ➕ S’inscrire
           </Button>
         </Box>
 
         <Typography align="center" mt={3}>
           Déjà un compte ?{" "}
-          <Link
-            href="/login"
-            underline="hover"
-            sx={{ fontWeight: "bold", cursor: "pointer" }}
-          >
+          <Link href="/login" underline="hover" sx={{ fontWeight: "bold" }}>
             Se connecter
           </Link>
         </Typography>
