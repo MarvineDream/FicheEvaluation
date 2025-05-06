@@ -2,11 +2,20 @@
 
 import { useEffect, useState } from "react";
 
-const API_URL = "https://backendeva.onrender.com/staff";
+const API_URL = "http://localhost:7000/staff";
 
 export default function StaffPage() {
   const [staffs, setStaffs] = useState([]);
-  const [form, setForm] = useState({ nom: "", poste: "", departement: "", dateFinContrat: "" });
+  const [form, setForm] = useState({
+    nom: "",
+    prenom: "",
+    email: "",
+    poste: "",
+    departement: "",
+    typeContrat: "CDD",
+    dateEmbauche: "",
+    dateFinContrat: "",
+  });
   const [editingId, setEditingId] = useState(null);
 
   const fetchStaff = async () => {
@@ -34,7 +43,16 @@ export default function StaffPage() {
       body: JSON.stringify(form),
     });
 
-    setForm({ nom: "", poste: "", departement: "", dateFinContrat: "" });
+    setForm({
+      nom: "",
+      prenom: "",
+      email: "",
+      poste: "",
+      departement: "",
+      typeContrat: "CDD",
+      dateEmbauche: "",
+      dateFinContrat: "",
+    });
     setEditingId(null);
     fetchStaff();
   };
@@ -42,9 +60,13 @@ export default function StaffPage() {
   const handleEdit = (staff) => {
     setForm({
       nom: staff.nom,
+      prenom: staff.prenom || "",
+      email: staff.email,
       poste: staff.poste,
       departement: staff.departement,
-      dateFinContrat: staff.dateFinContrat?.substring(0, 10),
+      typeContrat: staff.typeContrat,
+      dateEmbauche: staff.dateEmbauche?.substring(0, 10),
+      dateFinContrat: staff.dateFinContrat?.substring(0, 10) || "",
     });
     setEditingId(staff._id);
   };
@@ -58,9 +80,6 @@ export default function StaffPage() {
 
   return (
     <div className="flex">
-      
-
-      {/* Main */}
       <main className="flex-1 p-8 bg-gray-100">
         <h1 className="text-2xl font-bold mb-6">Gestion du Personnel</h1>
 
@@ -70,8 +89,25 @@ export default function StaffPage() {
             <input
               type="text"
               name="nom"
-              placeholder="Nom complet"
+              placeholder="Nom"
               value={form.nom}
+              onChange={handleChange}
+              className="border px-3 py-2 rounded w-full"
+              required
+            />
+            <input
+              type="text"
+              name="prenom"
+              placeholder="Prénom"
+              value={form.prenom}
+              onChange={handleChange}
+              className="border px-3 py-2 rounded w-full"
+            />
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              value={form.email}
               onChange={handleChange}
               className="border px-3 py-2 rounded w-full"
               required
@@ -94,6 +130,26 @@ export default function StaffPage() {
               className="border px-3 py-2 rounded w-full"
               required
             />
+            <select
+              name="typeContrat"
+              value={form.typeContrat}
+              onChange={handleChange}
+              className="border px-3 py-2 rounded w-full"
+              required
+            >
+              <option value="CDD">CDD</option>
+              <option value="CDI">CDI</option>
+              <option value="Stagiaire">Stagiaire</option>
+            </select>
+            <input
+              type="date"
+              name="dateEmbauche"
+              placeholder="Date d'embauche"
+              value={form.dateEmbauche}
+              onChange={handleChange}
+              className="border px-3 py-2 rounded w-full"
+              required
+            />
             <input
               type="date"
               name="dateFinContrat"
@@ -101,9 +157,9 @@ export default function StaffPage() {
               value={form.dateFinContrat}
               onChange={handleChange}
               className="border px-3 py-2 rounded w-full"
-              required
             />
           </div>
+
           <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
             {editingId ? "Modifier" : "Ajouter"}
           </button>
@@ -116,8 +172,12 @@ export default function StaffPage() {
             <thead className="bg-gray-200">
               <tr>
                 <th className="text-left p-2">Nom</th>
+                <th className="text-left p-2">Prénom</th>
+                <th className="text-left p-2">Email</th>
                 <th className="text-left p-2">Poste</th>
                 <th className="text-left p-2">Département</th>
+                <th className="text-left p-2">Type</th>
+                <th className="text-left p-2">Embauche</th>
                 <th className="text-left p-2">Fin contrat</th>
                 <th className="text-left p-2">Actions</th>
               </tr>
@@ -126,9 +186,13 @@ export default function StaffPage() {
               {staffs.map((s) => (
                 <tr key={s._id} className="border-t">
                   <td className="p-2">{s.nom}</td>
+                  <td className="p-2">{s.prenom}</td>
+                  <td className="p-2">{s.email}</td>
                   <td className="p-2">{s.poste}</td>
                   <td className="p-2">{s.departement}</td>
-                  <td className="p-2">{new Date(s.dateFinContrat).toLocaleDateString()}</td>
+                  <td className="p-2">{s.typeContrat}</td>
+                  <td className="p-2">{new Date(s.dateEmbauche).toLocaleDateString()}</td>
+                  <td className="p-2">{s.dateFinContrat ? new Date(s.dateFinContrat).toLocaleDateString() : "-"}</td>
                   <td className="p-2 space-x-2">
                     <button onClick={() => handleEdit(s)} className="text-blue-600">✏️</button>
                     <button onClick={() => handleDelete(s._id)} className="text-red-600">🗑️</button>

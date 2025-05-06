@@ -44,7 +44,7 @@ export default function LoginPage() {
     // 🔁 Redirection en fonction du rôle
     switch (user.role) {
       case "admin":
-      case "rh":
+      case "RH":
         router.push("/with-sidebar/dashboard");
         break;
       case "manager":
