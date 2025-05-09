@@ -1,7 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { Drawer, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Divider, Box } from "@mui/material";
+import {
+  Drawer,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Toolbar,
+  Divider,
+  Box,
+  Typography,
+} from "@mui/material";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import PeopleIcon from "@mui/icons-material/People";
 import AssessmentIcon from "@mui/icons-material/Assessment";
@@ -13,7 +23,7 @@ const drawerWidth = 240;
 export default function Sidebar() {
   const { user, logout } = useAuth();
 
-  if (!user) return null; // 👈 Ne rien afficher si l'utilisateur n'est pas connecté
+  if (!user) return null;
 
   return (
     <Drawer
@@ -21,18 +31,38 @@ export default function Sidebar() {
       sx={{
         width: drawerWidth,
         flexShrink: 0,
-        [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: "border-box", backgroundColor: "#f5f5f5" },
+        [`& .MuiDrawer-paper`]: {
+          width: drawerWidth,
+          boxSizing: "border-box",
+          backgroundColor: "#f5f5f5",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+        },
       }}
     >
-      <Toolbar />
-      <Box sx={{ overflow: "auto" }}>
+      <Box>
+        <Toolbar />
+        <Box sx={{ px: 2, pb: 1 }}>
+          <Typography variant="subtitle2" color="text.secondary">
+            Connecté en tant que :
+          </Typography>
+          <Typography variant="body1" fontWeight="bold">
+            {user.nom} ({user.role})
+          </Typography>
+        </Box>
+
+        <Divider sx={{ my: 1 }} />
+
         <List>
-          <ListItemButton component={Link} href="/with-sidebar/dashboard">
-            <ListItemIcon>
-              <DashboardIcon />
-            </ListItemIcon>
-            <ListItemText primary="Dashboard RH" />
-          </ListItemButton>
+          {(user.role === "RH" || user.role === "admin") && (
+            <ListItemButton component={Link} href="/with-sidebar/dashboard">
+              <ListItemIcon>
+                <DashboardIcon />
+              </ListItemIcon>
+              <ListItemText primary="Dashboard RH" />
+            </ListItemButton>
+          )}
 
           <ListItemButton component={Link} href="/with-sidebar/staff">
             <ListItemIcon>
@@ -48,9 +78,10 @@ export default function Sidebar() {
             <ListItemText primary="Fiche d'évaluation" />
           </ListItemButton>
         </List>
+      </Box>
 
+      <Box>
         <Divider />
-
         <List>
           <ListItemButton onClick={logout}>
             <ListItemIcon>

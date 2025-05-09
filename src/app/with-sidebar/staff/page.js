@@ -1,11 +1,33 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  Box,
+  Button,
+  Container,
+  Drawer,
+  Grid,
+  IconButton,
+  MenuItem,
+  Select,
+  TextField,
+  Typography
+} from "@mui/material";
+import Paper from "@mui/material/Paper";
+import { DataGrid } from "@mui/x-data-grid";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
-const API_URL = "http://localhost:7000/staff";
+
+
+const API_URL = "https://backendeva.onrender.com/staff";
 
 export default function StaffPage() {
   const [staffs, setStaffs] = useState([]);
+  const [filterDept, setFilterDept] = useState("");
+  const [editingId, setEditingId] = useState(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
   const [form, setForm] = useState({
     nom: "",
     prenom: "",
@@ -14,14 +36,28 @@ export default function StaffPage() {
     departement: "",
     typeContrat: "CDD",
     dateEmbauche: "",
-    dateFinContrat: "",
+    dateFinContrat: ""
   });
-  const [editingId, setEditingId] = useState(null);
 
   const fetchStaff = async () => {
-    const res = await fetch(API_URL);
-    const data = await res.json();
-    setStaffs(data);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_URL}/All`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setStaffs(data);
+      } else {
+        setStaffs([]);
+      }
+    } catch (error) {
+      console.error("Erreur de récupération du staff :", error);
+      setStaffs([]);
+    }
   };
 
   useEffect(() => {
@@ -40,7 +76,7 @@ export default function StaffPage() {
     await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify(form)
     });
 
     setForm({
@@ -51,9 +87,10 @@ export default function StaffPage() {
       departement: "",
       typeContrat: "CDD",
       dateEmbauche: "",
-      dateFinContrat: "",
+      dateFinContrat: ""
     });
     setEditingId(null);
+    setDrawerOpen(false);
     fetchStaff();
   };
 
@@ -66,9 +103,10 @@ export default function StaffPage() {
       departement: staff.departement,
       typeContrat: staff.typeContrat,
       dateEmbauche: staff.dateEmbauche?.substring(0, 10),
-      dateFinContrat: staff.dateFinContrat?.substring(0, 10) || "",
+      dateFinContrat: staff.dateFinContrat?.substring(0, 10) || ""
     });
     setEditingId(staff._id);
+    setDrawerOpen(true);
   };
 
   const handleDelete = async (id) => {
@@ -78,131 +116,147 @@ export default function StaffPage() {
     }
   };
 
+  const filteredStaffs = staffs.filter((s) =>
+    s.departement.toLowerCase().includes(filterDept.toLowerCase())
+  );
+
+  const columns = [
+    { field: "nom", headerName: "Nom", flex: 1 },
+    { field: "prenom", headerName: "Prénom", flex: 1 },
+    { field: "email", headerName: "Email", flex: 1.5 },
+    { field: "poste", headerName: "Poste", flex: 1 },
+    { field: "departement", headerName: "Département", flex: 1 },
+    { field: "typeContrat", headerName: "Contrat", flex: 0.8 },
+    {
+      field: "dateEmbauche",
+      headerName: "Embauche",
+      flex: 1,
+      valueFormatter: (params) => new Date(params.value).toLocaleDateString()
+    },
+    {
+      field: "dateFinContrat",
+      headerName: "Fin Contrat",
+      flex: 1,
+      valueFormatter: (params) =>
+        params.value ? new Date(params.value).toLocaleDateString() : "-"
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      sortable: false,
+      flex: 0.8,
+      renderCell: (params) => (
+        <>
+          <IconButton onClick={() => handleEdit(params.row)}>
+            <EditIcon color="primary" />
+          </IconButton>
+          <IconButton onClick={() => handleDelete(params.row._id)}>
+            <DeleteIcon color="error" />
+          </IconButton>
+        </>
+      )
+    }
+  ];
+
   return (
-    <div className="flex">
-      <main className="flex-1 p-8 bg-gray-100">
-        <h1 className="text-2xl font-bold mb-6">Gestion du Personnel</h1>
+    <Container maxWidth="lg" sx={{ mt: 4 }}>
+      <Typography variant="h4" gutterBottom>
+        Gestion du Personnel
+      </Typography>
 
-        {/* Formulaire */}
-        <form onSubmit={handleSubmit} className="bg-white p-4 rounded shadow mb-6 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input
-              type="text"
-              name="nom"
-              placeholder="Nom"
-              value={form.nom}
-              onChange={handleChange}
-              className="border px-3 py-2 rounded w-full"
-              required
-            />
-            <input
-              type="text"
-              name="prenom"
-              placeholder="Prénom"
-              value={form.prenom}
-              onChange={handleChange}
-              className="border px-3 py-2 rounded w-full"
-            />
-            <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              value={form.email}
-              onChange={handleChange}
-              className="border px-3 py-2 rounded w-full"
-              required
-            />
-            <input
-              type="text"
-              name="poste"
-              placeholder="Poste"
-              value={form.poste}
-              onChange={handleChange}
-              className="border px-3 py-2 rounded w-full"
-              required
-            />
-            <input
-              type="text"
-              name="departement"
-              placeholder="Département"
-              value={form.departement}
-              onChange={handleChange}
-              className="border px-3 py-2 rounded w-full"
-              required
-            />
-            <select
-              name="typeContrat"
-              value={form.typeContrat}
-              onChange={handleChange}
-              className="border px-3 py-2 rounded w-full"
-              required
-            >
-              <option value="CDD">CDD</option>
-              <option value="CDI">CDI</option>
-              <option value="Stagiaire">Stagiaire</option>
-            </select>
-            <input
-              type="date"
-              name="dateEmbauche"
-              placeholder="Date d'embauche"
-              value={form.dateEmbauche}
-              onChange={handleChange}
-              className="border px-3 py-2 rounded w-full"
-              required
-            />
-            <input
-              type="date"
-              name="dateFinContrat"
-              placeholder="Date de fin de contrat"
-              value={form.dateFinContrat}
-              onChange={handleChange}
-              className="border px-3 py-2 rounded w-full"
-            />
-          </div>
+      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+        <TextField
+          label="Filtrer par département"
+          value={filterDept}
+          onChange={(e) => setFilterDept(e.target.value)}
+          sx={{ width: "50%" }}
+        />
+        <Button variant="contained" onClick={() => setDrawerOpen(true)}>
+          Ajouter un membre
+        </Button>
+      </Box>
 
-          <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
-            {editingId ? "Modifier" : "Ajouter"}
-          </button>
-        </form>
+      <Paper elevation={3} sx={{ height: 550 }}>
+        <DataGrid
+          rows={filteredStaffs}
+          columns={columns}
+          getRowId={(row) => row._id}
+          pageSize={10}
+          rowsPerPageOptions={[10, 20, 50]}
+          disableSelectionOnClick
+        />
+      </Paper>
 
-        {/* Liste du staff */}
-        <div className="bg-white p-4 rounded shadow">
-          <h2 className="text-xl font-semibold mb-4">Liste du staff</h2>
-          <table className="w-full border table-auto text-sm">
-            <thead className="bg-gray-200">
-              <tr>
-                <th className="text-left p-2">Nom</th>
-                <th className="text-left p-2">Prénom</th>
-                <th className="text-left p-2">Email</th>
-                <th className="text-left p-2">Poste</th>
-                <th className="text-left p-2">Département</th>
-                <th className="text-left p-2">Type</th>
-                <th className="text-left p-2">Embauche</th>
-                <th className="text-left p-2">Fin contrat</th>
-                <th className="text-left p-2">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {staffs.map((s) => (
-                <tr key={s._id} className="border-t">
-                  <td className="p-2">{s.nom}</td>
-                  <td className="p-2">{s.prenom}</td>
-                  <td className="p-2">{s.email}</td>
-                  <td className="p-2">{s.poste}</td>
-                  <td className="p-2">{s.departement}</td>
-                  <td className="p-2">{s.typeContrat}</td>
-                  <td className="p-2">{new Date(s.dateEmbauche).toLocaleDateString()}</td>
-                  <td className="p-2">{s.dateFinContrat ? new Date(s.dateFinContrat).toLocaleDateString() : "-"}</td>
-                  <td className="p-2 space-x-2">
-                    <button onClick={() => handleEdit(s)} className="text-blue-600">✏️</button>
-                    <button onClick={() => handleDelete(s._id)} className="text-red-600">🗑️</button>
-                  </td>
-                </tr>
+      {/* Drawer pour ajout/modification */}
+      <Drawer anchor="right" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+        <Box sx={{ width: 400, p: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            {editingId ? "Modifier le staff" : "Ajouter un membre"}
+          </Typography>
+          <form onSubmit={handleSubmit}>
+            <Grid container spacing={2}>
+              {[
+                { name: "nom", label: "Nom" },
+                { name: "prenom", label: "Prénom" },
+                { name: "email", label: "Email", type: "email" },
+                { name: "poste", label: "Poste" },
+                { name: "departement", label: "Département" }
+              ].map((field) => (
+                <Grid item xs={12} key={field.name}>
+                  <TextField
+                    fullWidth
+                    label={field.label}
+                    name={field.name}
+                    type={field.type || "text"}
+                    value={form[field.name]}
+                    onChange={handleChange}
+                    required={["nom", "email", "poste", "departement"].includes(field.name)}
+                  />
+                </Grid>
               ))}
-            </tbody>
-          </table>
-        </div>
-      </main>
-    </div>
+              <Grid item xs={12}>
+                <Select
+                  name="typeContrat"
+                  value={form.typeContrat}
+                  onChange={handleChange}
+                  fullWidth
+                >
+                  <MenuItem value="CDD">CDD</MenuItem>
+                  <MenuItem value="CDI">CDI</MenuItem>
+                  <MenuItem value="Stagiaire">Stagiaire</MenuItem>
+                </Select>
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  name="dateEmbauche"
+                  label="Date d'embauche"
+                  type="date"
+                  fullWidth
+                  InputLabelProps={{ shrink: true }}
+                  value={form.dateEmbauche}
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  name="dateFinContrat"
+                  label="Date de fin de contrat"
+                  type="date"
+                  fullWidth
+                  InputLabelProps={{ shrink: true }}
+                  value={form.dateFinContrat}
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Button fullWidth variant="contained" type="submit">
+                  {editingId ? "Modifier" : "Ajouter"}
+                </Button>
+              </Grid>
+            </Grid>
+          </form>
+        </Box>
+      </Drawer>
+    </Container>
   );
 }
