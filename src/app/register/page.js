@@ -32,7 +32,7 @@ export default function RegisterPage() {
           email,
           password,
           role,
-          departement: role === "manager" ? departement : undefined
+          departement: role === "manager" ? departement : null
         })
       });
 
