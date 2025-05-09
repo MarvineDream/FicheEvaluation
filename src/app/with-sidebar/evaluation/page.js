@@ -3,19 +3,11 @@
 import { useState } from "react";
 import useAuth from "@/app/hooks/useAuth";
 import { useRouter } from "next/navigation";
-import {
-  Container,
-  Grid,
-  TextField,
-  Button,
-  Typography,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Paper,
-  Box,
-} from "@mui/material";
+import { Container, Grid, TextField, Button, Typography, Select, MenuItem, FormControl, InputLabel, Paper, Box } from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, DialogActions, Divider } from "@mui/material";
+import CompetenceCategory from "@/components/Competence";
+
+
 
 const BACKEND_URL = "https://backendeva.onrender.com/Evaluation";
 
@@ -37,6 +29,7 @@ export default function EvaluationPage() {
     { critere: "Respect des procédures", note: "", commentaire: "" },
     { critere: "Maîtrise des outils", note: "", commentaire: "" }
   ]);
+
 
   const [competences, setCompetences] = useState({
     savoir: [
@@ -222,124 +215,124 @@ export default function EvaluationPage() {
               <Typography variant="h6" sx={{ mt: 4 }}>Compétences professionnelles</Typography>
 
               {/* Savoir */}
-<Typography variant="subtitle1">Savoir</Typography>
-{competences.savoir.map((item, idx) => (
-  <Box key={idx} sx={{ marginBottom: 2 }}>
-    <Typography>{item.critere}</Typography>
-    <FormControl fullWidth>
-      <InputLabel>Note</InputLabel>
-      <Select
-        name="note"
-        value={item.note}
-        onChange={(e) => handleNestedArrayChange(e, 'savoir', idx)}
-      >
-        <MenuItem value="TB">Très Bien</MenuItem>
-        <MenuItem value="B">Bien</MenuItem>
-        <MenuItem value="P">Passable</MenuItem>
-        <MenuItem value="I">Insuffisant</MenuItem>
-        <MenuItem value="PC">Pas Concerné</MenuItem>
-      </Select>
-    </FormControl>
-    <TextField
-      label="Axe d'Amélioration"
-      name="axeAmelioration"
-      value={item.axeAmelioration}
-      onChange={(e) => handleNestedArrayChange(e, 'savoir', idx)}
-      fullWidth
-      sx={{ mt: 1 }}
-    />
-  </Box>
-))}
+              <Typography variant="subtitle1">Savoir</Typography>
+              {competences.savoir.map((item, idx) => (
+                <Box key={idx} sx={{ marginBottom: 2 }}>
+                  <Typography>{item.critere}</Typography>
+                  <FormControl fullWidth>
+                    <InputLabel>Note</InputLabel>
+                    <Select
+                      name="note"
+                      value={item.note}
+                      onChange={(e) => handleNestedArrayChange(e, 'savoir', idx)}
+                    >
+                      <MenuItem value="TB">Très Bien</MenuItem>
+                      <MenuItem value="B">Bien</MenuItem>
+                      <MenuItem value="P">Passable</MenuItem>
+                      <MenuItem value="I">Insuffisant</MenuItem>
+                      <MenuItem value="PC">Pas Concerné</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <TextField
+                    label="Axe d'Amélioration"
+                    name="axeAmelioration"
+                    value={item.axeAmelioration}
+                    onChange={(e) => handleNestedArrayChange(e, 'savoir', idx)}
+                    fullWidth
+                    sx={{ mt: 1 }}
+                  />
+                </Box>
+              ))}
 
-{/* Savoir-Faire */}
-<Typography variant="subtitle1">Savoir-Faire</Typography>
-{competences.savoirFaire.map((item, idx) => (
-  <Box key={idx} sx={{ marginBottom: 2 }}>
-    <Typography>{item.critere}</Typography>
-    <FormControl fullWidth>
-      <InputLabel>Note</InputLabel>
-      <Select
-        name="note"
-        value={item.note}
-        onChange={(e) => handleNestedArrayChange(e, 'savoirFaire', idx)}
-      >
-        <MenuItem value="TB">Très Bien</MenuItem>
-        <MenuItem value="B">Bien</MenuItem>
-        <MenuItem value="P">Passable</MenuItem>
-        <MenuItem value="I">Insuffisant</MenuItem>
-        <MenuItem value="PC">Pas Concerné</MenuItem>
-      </Select>
-    </FormControl>
-    <TextField
-      label="Axe d'Amélioration"
-      name="axeAmelioration"
-      value={item.axeAmelioration}
-      onChange={(e) => handleNestedArrayChange(e, 'savoirFaire', idx)}
-      fullWidth
-      sx={{ mt: 1 }}
-    />
-  </Box>
-))}
+              {/* Savoir-Faire */}
+              <Typography variant="subtitle1">Savoir-Faire</Typography>
+              {competences.savoirFaire.map((item, idx) => (
+                <Box key={idx} sx={{ marginBottom: 2 }}>
+                  <Typography>{item.critere}</Typography>
+                  <FormControl fullWidth>
+                    <InputLabel>Note</InputLabel>
+                    <Select
+                      name="note"
+                      value={item.note}
+                      onChange={(e) => handleNestedArrayChange(e, 'savoirFaire', idx)}
+                    >
+                      <MenuItem value="TB">Très Bien</MenuItem>
+                      <MenuItem value="B">Bien</MenuItem>
+                      <MenuItem value="P">Passable</MenuItem>
+                      <MenuItem value="I">Insuffisant</MenuItem>
+                      <MenuItem value="PC">Pas Concerné</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <TextField
+                    label="Axe d'Amélioration"
+                    name="axeAmelioration"
+                    value={item.axeAmelioration}
+                    onChange={(e) => handleNestedArrayChange(e, 'savoirFaire', idx)}
+                    fullWidth
+                    sx={{ mt: 1 }}
+                  />
+                </Box>
+              ))}
 
-{/* Savoir-Être */}
-<Typography variant="subtitle1">Savoir-Être</Typography>
-{competences.savoirEtre.map((item, idx) => (
-  <Box key={idx} sx={{ marginBottom: 2 }}>
-    <Typography>{item.critere}</Typography>
-    <FormControl fullWidth>
-      <InputLabel>Note</InputLabel>
-      <Select
-        name="note"
-        value={item.note}
-        onChange={(e) => handleNestedArrayChange(e, 'savoirEtre', idx)}
-      >
-        <MenuItem value="TB">Très Bien</MenuItem>
-        <MenuItem value="B">Bien</MenuItem>
-        <MenuItem value="P">Passable</MenuItem>
-        <MenuItem value="I">Insuffisant</MenuItem>
-        <MenuItem value="PC">Pas Concerné</MenuItem>
-      </Select>
-    </FormControl>
-    <TextField
-      label="Axe d'Amélioration"
-      name="axeAmelioration"
-      value={item.axeAmelioration}
-      onChange={(e) => handleNestedArrayChange(e, 'savoirEtre', idx)}
-      fullWidth
-      sx={{ mt: 1 }}
-    />
-  </Box>
-))}
+              {/* Savoir-Être */}
+              <Typography variant="subtitle1">Savoir-Être</Typography>
+              {competences.savoirEtre.map((item, idx) => (
+                <Box key={idx} sx={{ marginBottom: 2 }}>
+                  <Typography>{item.critere}</Typography>
+                  <FormControl fullWidth>
+                    <InputLabel>Note</InputLabel>
+                    <Select
+                      name="note"
+                      value={item.note}
+                      onChange={(e) => handleNestedArrayChange(e, 'savoirEtre', idx)}
+                    >
+                      <MenuItem value="TB">Très Bien</MenuItem>
+                      <MenuItem value="B">Bien</MenuItem>
+                      <MenuItem value="P">Passable</MenuItem>
+                      <MenuItem value="I">Insuffisant</MenuItem>
+                      <MenuItem value="PC">Pas Concerné</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <TextField
+                    label="Axe d'Amélioration"
+                    name="axeAmelioration"
+                    value={item.axeAmelioration}
+                    onChange={(e) => handleNestedArrayChange(e, 'savoirEtre', idx)}
+                    fullWidth
+                    sx={{ mt: 1 }}
+                  />
+                </Box>
+              ))}
 
-{/* Discipline */}
-<Typography variant="subtitle1">Discipline</Typography>
-{competences.discipline.map((item, idx) => (
-  <Box key={idx} sx={{ marginBottom: 2 }}>
-    <Typography>{item.critere}</Typography>
-    <FormControl fullWidth>
-      <InputLabel>Note</InputLabel>
-      <Select
-        name="note"
-        value={item.note}
-        onChange={(e) => handleNestedArrayChange(e, 'discipline', idx)}
-      >
-        <MenuItem value="TB">Très Bien</MenuItem>
-        <MenuItem value="B">Bien</MenuItem>
-        <MenuItem value="P">Passable</MenuItem>
-        <MenuItem value="I">Insuffisant</MenuItem>
-        <MenuItem value="PC">Pas Concerné</MenuItem>
-      </Select>
-    </FormControl>
-    <TextField
-      label="Axe d'Amélioration"
-      name="axeAmelioration"
-      value={item.axeAmelioration}
-      onChange={(e) => handleNestedArrayChange(e, 'discipline', idx)}
-      fullWidth
-      sx={{ mt: 1 }}
-    />
-  </Box>
-))}
+              {/* Discipline */}
+              <Typography variant="subtitle1">Discipline</Typography>
+              {competences.discipline.map((item, idx) => (
+                <Box key={idx} sx={{ marginBottom: 2 }}>
+                  <Typography>{item.critere}</Typography>
+                  <FormControl fullWidth>
+                    <InputLabel>Note</InputLabel>
+                    <Select
+                      name="note"
+                      value={item.note}
+                      onChange={(e) => handleNestedArrayChange(e, 'discipline', idx)}
+                    >
+                      <MenuItem value="TB">Très Bien</MenuItem>
+                      <MenuItem value="B">Bien</MenuItem>
+                      <MenuItem value="P">Passable</MenuItem>
+                      <MenuItem value="I">Insuffisant</MenuItem>
+                      <MenuItem value="PC">Pas Concerné</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <TextField
+                    label="Axe d'Amélioration"
+                    name="axeAmelioration"
+                    value={item.axeAmelioration}
+                    onChange={(e) => handleNestedArrayChange(e, 'discipline', idx)}
+                    fullWidth
+                    sx={{ mt: 1 }}
+                  />
+                </Box>
+              ))}
 
 
               {/* Appréciation Globale */}
@@ -396,9 +389,100 @@ export default function EvaluationPage() {
               {/* Boutons */}
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
                 <Button variant="outlined" onClick={() => setShowPreview(true)}>Prévisualiser</Button>
-                <Button variant="contained" type="submit">Envoyer</Button>
+                <Button variant="contained" type="submit" disabled={!agent.nom || !agent.prenom || !agent.direction}>Envoyer</Button>
               </Box>
             </form>
+            <Dialog open={showPreview} onClose={() => setShowPreview(false)} maxWidth="md" fullWidth>
+              <DialogTitle>Fiche d&apos;évaluation</DialogTitle>
+              <DialogContent dividers>
+                <Typography variant="h6" gutterBottom>Informations de l&apos;agent</Typography>
+                <Typography><strong>Nom :</strong> {agent.nom}</Typography>
+                <Typography><strong>Prénom :</strong> {agent.prenom}</Typography>
+                <Typography><strong>Emploi :</strong> {agent.emploi}</Typography>
+                <Typography><strong>Direction :</strong> {agent.direction}</Typography>
+                <Typography><strong>Date d&apos;embauche :</strong> {agent.dateEmbauche}</Typography>
+                <Typography><strong>Type de contrat :</strong> {agent.typeContrat}</Typography>
+
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="h6" gutterBottom>Objectifs fixés</Typography>
+                <ul>
+                  {objectifs.map((o, idx) => (
+                    <li key={idx}>
+                      <strong>Activité {idx + 1}</strong>: {o.activite}, Attendu: {o.attendu}, Réalisé: {o.realise}
+                    </li>
+                  ))}
+                </ul>
+
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="h6" gutterBottom>Intégration professionnelle</Typography>
+                <ul>
+                  {integration.map((item, idx) => (
+                    <li key={idx}>
+                      <strong>{item.critere}</strong> — Note : {item.note}, Commentaire : {item.commentaire || "—"}
+                    </li>
+                  ))}
+                </ul>
+
+
+                {/* Compétences professionnelles */}
+                <Divider sx={{ my: 2 }} />
+
+                <Typography variant="h6">Compétences professionnelles</Typography>
+
+                {/* Savoir */}
+                <Typography variant="subtitle1" sx={{ mt: 2 }}>Savoir</Typography>
+                {competences?.savoir?.map((item, idx) => (
+                  <Box key={`savoir-${idx}`} sx={{ mb: 2 }}>
+                    <Typography><strong>{item.critere}</strong></Typography>
+                    <Typography>Note : {item.note}</Typography>
+                    <Typography>Axe d&apos;Amélioration : {item.axeAmelioration}</Typography>
+                  </Box>
+                ))}
+
+                {/* Savoir-Faire */}
+                <Typography variant="subtitle1" sx={{ mt: 2 }}>Savoir-Faire</Typography>
+                {competences?.savoirFaire?.map((item, idx) => (
+                  <Box key={`savoirFaire-${idx}`} sx={{ mb: 2 }}>
+                    <Typography><strong>{item.critere}</strong></Typography>
+                    <Typography>Note : {item.note}</Typography>
+                    <Typography>Axe d&apos;Amélioration : {item.axeAmelioration}</Typography>
+                  </Box>
+                ))}
+
+                {/* Savoir-Être */}
+                <Typography variant="subtitle1" sx={{ mt: 2 }}>Savoir-Être</Typography>
+                {competences?.savoirEtre?.map((item, idx) => (
+                  <Box key={`savoirEtre-${idx}`} sx={{ mb: 2 }}>
+                    <Typography><strong>{item.critere}</strong></Typography>
+                    <Typography>Note : {item.note}</Typography>
+                    <Typography>Axe d&apos;Amélioration : {item.axeAmelioration}</Typography>
+                  </Box>
+                ))}
+
+
+
+
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="h6" gutterBottom>Appréciation Globale</Typography>
+                <Typography>{appreciationGlobale || "—"}</Typography>
+
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="h6" gutterBottom>Décision RH</Typography>
+                <Typography><strong>Choix :</strong> {decision.choix}</Typography>
+                <Typography><strong>Commentaire :</strong> {decision.commentaire}</Typography>
+
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="h6" gutterBottom>Signatures</Typography>
+                <Typography><strong>Responsable :</strong> {signatures.responsableNom} — {signatures.responsableDate}</Typography>
+                <Typography><strong>RH :</strong> {signatures.rhNom} — {signatures.rhDate}</Typography>
+              </DialogContent>
+
+              <DialogActions>
+                <Button onClick={() => setShowPreview(false)}>Fermer</Button>
+                <Button onClick={handleSubmit} variant="contained" disabled={!agent.nom || !agent.prenom || !agent.direction} >Valider et envoyer</Button>
+              </DialogActions>
+            </Dialog>
+
           </Paper>
         </Grid>
       </Grid>

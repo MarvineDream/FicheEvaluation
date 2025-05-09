@@ -2,20 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Container,
-  TextField,
-  Button,
-  Typography,
-  Box,
-  Paper,
-  Alert,
-  Link,
-  MenuItem,
-  Select,
-  InputLabel,
-  FormControl
-} from "@mui/material";
+import { Container, TextField, Button, Typography, Box, Paper, Alert, Link, MenuItem, Select, InputLabel, FormControl } from "@mui/material";
 
 export default function RegisterPage() {
   const router = useRouter();
