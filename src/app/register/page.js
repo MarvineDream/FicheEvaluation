@@ -134,11 +134,11 @@ export default function RegisterPage() {
             >
               <MenuItem value="ADMIN">Admin</MenuItem>
               <MenuItem value="RH">RH</MenuItem>
-              <MenuItem value="MANAGER">Manager</MenuItem>
+              <MenuItem value="Manager">Manager</MenuItem>
             </Select>
           </FormControl>
 
-          {(role === "RH" || role === "MANAGER") && (
+          {(role === "RH" || role === "Manager") && (
             <TextField
               label="Département"
               value={departement}
