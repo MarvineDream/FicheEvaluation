@@ -14,7 +14,8 @@ import {
   MenuItem,
   Select,
   InputLabel,
-  FormControl
+  FormControl,
+  CircularProgress,
 } from "@mui/material";
 
 export default function RegisterPage() {
@@ -26,6 +27,7 @@ export default function RegisterPage() {
   const [role, setRole] = useState("");
   const [departement, setDepartement] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -36,6 +38,8 @@ export default function RegisterPage() {
       return;
     }
 
+    setLoading(true);
+
     try {
       const res = await fetch("https://backendeva.onrender.com/auth/register", {
         method: "POST",
@@ -44,9 +48,9 @@ export default function RegisterPage() {
           nom,
           email,
           password,
-          role,
-          departement: role === "manager" ? departement : undefined
-        })
+          role: role.toUpperCase(),
+          departement: role === "MANAGER" || role === "RH" ? departement : undefined,
+        }),
       });
 
       if (!res.ok) {
@@ -58,6 +62,8 @@ export default function RegisterPage() {
       router.push("/login");
     } catch (err) {
       setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -114,25 +120,35 @@ export default function RegisterPage() {
               label="Rôle"
               onChange={(e) => setRole(e.target.value)}
             >
-              <MenuItem value="admin">Admin</MenuItem>
-              <MenuItem value="rh">RH</MenuItem>
-              <MenuItem value="manager">Manager</MenuItem>
+              <MenuItem value="ADMIN">Admin</MenuItem>
+              <MenuItem value="RH">RH</MenuItem>
+              <MenuItem value="MANAGER">Manager</MenuItem>
             </Select>
           </FormControl>
 
-          {role === "manager" && (
+          {(role === "MANAGER" || role === "RH") && (
             <TextField
               label="Département"
               value={departement}
+              onChange={(e) => setDepartement(e.target.value)}
               fullWidth
               margin="normal"
-              onChange={(e) => setDepartement(e.target.value)}
               required
             />
           )}
 
-          <Button type="submit" variant="contained" fullWidth sx={{ mt: 3 }}>
-            ➕ S’inscrire
+          <Button
+            type="submit"
+            variant="contained"
+            fullWidth
+            sx={{ mt: 3 }}
+            disabled={loading}
+          >
+            {loading ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              "➕ S’inscrire"
+            )}
           </Button>
         </Box>
 

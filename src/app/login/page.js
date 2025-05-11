@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { CircularProgress } from "@mui/material";
 import {
   Container,
   TextField,
@@ -18,45 +19,49 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
-  e.preventDefault();
-  setError("");
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
-  try {
-    const res = await fetch("https://backendeva.onrender.com/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const res = await fetch("https://backendeva.onrender.com/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (!res.ok) {
-      const { message } = await res.json();
-      throw new Error(message || "Erreur de connexion");
+      if (!res.ok) {
+        const { message } = await res.json();
+        throw new Error(message || "Erreur de connexion");
+      }
+
+      const data = await res.json();
+      const { token, user } = data;
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+
+      // 🔁 Redirection en fonction du rôle
+      switch (user.role) {
+        case "admin":
+        case "RH":
+          router.push("/with-sidebar/dashboard");
+          break;
+        case "manager":
+          router.push(`/with-sidebar/manager-dashboard?departement=${user.departement}`);
+          break;
+        default:
+          throw new Error("Rôle utilisateur non reconnu");
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false); // ⛔ Désactive le chargement dans tous les cas
     }
-
-    const data = await res.json();
-    const { token, user } = data;
-
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
-
-    // 🔁 Redirection en fonction du rôle
-    switch (user.role) {
-      case "admin":
-      case "RH":
-        router.push("/with-sidebar/dashboard");
-        break;
-      case "manager":
-        router.push(`/with-sidebar/manager-dashboard?departement=${user.departement}`);
-        break;
-      default:
-        throw new Error("Rôle utilisateur non reconnu");
-    }
-  } catch (err) {
-    setError(err.message);
-  }
-};
+  };
 
   return (
     <Container maxWidth="xs">
@@ -91,8 +96,9 @@ export default function LoginPage() {
             variant="contained"
             fullWidth
             sx={{ mt: 3 }}
+            disabled={loading} // Désactive le bouton pendant le chargement
           >
-            Se connecter
+            {loading ? <CircularProgress size={24} color="inherit" /> : "Se connecter"}
           </Button>
         </Box>
 

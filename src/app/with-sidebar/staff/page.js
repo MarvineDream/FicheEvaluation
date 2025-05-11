@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const API_URL = "http://localhost:7000/staff";
+const API_URL = "https://backendeva.onrender.com/staff";
 
 export default function StaffPage() {
   const [staffs, setStaffs] = useState([]);
@@ -18,10 +18,26 @@ export default function StaffPage() {
   });
   const [editingId, setEditingId] = useState(null);
 
+  const getRandomStatus = () => {
+    const statusList = ["En attente", "En cours", "Envoyée"];
+    return statusList[Math.floor(Math.random() * statusList.length)];
+  };
+
   const fetchStaff = async () => {
-    const res = await fetch(API_URL);
-    const data = await res.json();
-    setStaffs(data);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_URL}/manager`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      const staffArray = Array.isArray(data)
+        ? data.map((s) => ({ ...s, statutEvaluation: getRandomStatus() }))
+        : [];
+      setStaffs(staffArray);
+    } catch (err) {
+      console.error("Erreur chargement staff manager:", err);
+      setStaffs([]);
+    }
   };
 
   useEffect(() => {
@@ -81,55 +97,28 @@ export default function StaffPage() {
   return (
     <div className="flex">
       <main className="flex-1 p-8 bg-gray-100">
-        <h1 className="text-2xl font-bold mb-6">Gestion du Personnel</h1>
+        <h1 className="text-2xl font-bold mb-6">Mon Équipe</h1>
 
-        {/* Formulaire */}
-        <form onSubmit={handleSubmit} className="bg-white p-4 rounded shadow mb-6 space-y-4">
+        {/* Formulaire d'ajout/modification */}
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white p-4 rounded shadow mb-6 space-y-4"
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input
-              type="text"
-              name="nom"
-              placeholder="Nom"
-              value={form.nom}
-              onChange={handleChange}
-              className="border px-3 py-2 rounded w-full"
-              required
-            />
-            <input
-              type="text"
-              name="prenom"
-              placeholder="Prénom"
-              value={form.prenom}
-              onChange={handleChange}
-              className="border px-3 py-2 rounded w-full"
-            />
-            <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              value={form.email}
-              onChange={handleChange}
-              className="border px-3 py-2 rounded w-full"
-              required
-            />
-            <input
-              type="text"
-              name="poste"
-              placeholder="Poste"
-              value={form.poste}
-              onChange={handleChange}
-              className="border px-3 py-2 rounded w-full"
-              required
-            />
-            <input
-              type="text"
-              name="departement"
-              placeholder="Département"
-              value={form.departement}
-              onChange={handleChange}
-              className="border px-3 py-2 rounded w-full"
-              required
-            />
+            {["nom", "prenom", "email", "poste", "departement"].map((field) => (
+              <input
+                key={field}
+                type="text"
+                name={field}
+                placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+                value={form[field]}
+                onChange={handleChange}
+                className="border px-3 py-2 rounded w-full"
+                required={["nom", "email", "poste", "departement"].includes(
+                  field
+                )}
+              />
+            ))}
             <select
               name="typeContrat"
               value={form.typeContrat}
@@ -144,7 +133,6 @@ export default function StaffPage() {
             <input
               type="date"
               name="dateEmbauche"
-              placeholder="Date d'embauche"
               value={form.dateEmbauche}
               onChange={handleChange}
               className="border px-3 py-2 rounded w-full"
@@ -153,32 +141,31 @@ export default function StaffPage() {
             <input
               type="date"
               name="dateFinContrat"
-              placeholder="Date de fin de contrat"
               value={form.dateFinContrat}
               onChange={handleChange}
               className="border px-3 py-2 rounded w-full"
             />
           </div>
-
-          <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+          <button
+            type="submit"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+          >
             {editingId ? "Modifier" : "Ajouter"}
           </button>
         </form>
 
-        {/* Liste du staff */}
+        {/* Liste du personnel */}
         <div className="bg-white p-4 rounded shadow">
-          <h2 className="text-xl font-semibold mb-4">Liste du staff</h2>
+          <h2 className="text-xl font-semibold mb-4">Équipe à évaluer</h2>
           <table className="w-full border table-auto text-sm">
             <thead className="bg-gray-200">
               <tr>
                 <th className="text-left p-2">Nom</th>
                 <th className="text-left p-2">Prénom</th>
-                <th className="text-left p-2">Email</th>
                 <th className="text-left p-2">Poste</th>
                 <th className="text-left p-2">Département</th>
-                <th className="text-left p-2">Type</th>
-                <th className="text-left p-2">Embauche</th>
                 <th className="text-left p-2">Fin contrat</th>
+                <th className="text-left p-2">Statut évaluation</th>
                 <th className="text-left p-2">Actions</th>
               </tr>
             </thead>
@@ -187,15 +174,39 @@ export default function StaffPage() {
                 <tr key={s._id} className="border-t">
                   <td className="p-2">{s.nom}</td>
                   <td className="p-2">{s.prenom}</td>
-                  <td className="p-2">{s.email}</td>
                   <td className="p-2">{s.poste}</td>
                   <td className="p-2">{s.departement}</td>
-                  <td className="p-2">{s.typeContrat}</td>
-                  <td className="p-2">{new Date(s.dateEmbauche).toLocaleDateString()}</td>
-                  <td className="p-2">{s.dateFinContrat ? new Date(s.dateFinContrat).toLocaleDateString() : "-"}</td>
+                  <td className="p-2">
+                    {s.dateFinContrat
+                      ? new Date(s.dateFinContrat).toLocaleDateString()
+                      : "-"}
+                  </td>
+                  <td className="p-2">
+                    <span
+                      className={`px-2 py-1 rounded-full text-white text-xs ${
+                        s.statutEvaluation === "En attente"
+                          ? "bg-orange-500"
+                          : s.statutEvaluation === "En cours"
+                          ? "bg-blue-500"
+                          : "bg-green-500"
+                      }`}
+                    >
+                      {s.statutEvaluation}
+                    </span>
+                  </td>
                   <td className="p-2 space-x-2">
-                    <button onClick={() => handleEdit(s)} className="text-blue-600">✏️</button>
-                    <button onClick={() => handleDelete(s._id)} className="text-red-600">🗑️</button>
+                    <button
+                      onClick={() => handleEdit(s)}
+                      className="text-blue-600"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      onClick={() => handleDelete(s._id)}
+                      className="text-red-600"
+                    >
+                      🗑️
+                    </button>
                   </td>
                 </tr>
               ))}
