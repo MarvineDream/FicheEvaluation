@@ -38,7 +38,7 @@ export default function RegisterPage() {
       return;
     }
 
-    if ((role === "RH" || role === "Manager") && !departement) {
+    if ((role === "RH" || role === "manager") && !departement) {
       setError("Le champ 'Département' est requis pour ce rôle.");
       return;
     }
@@ -56,7 +56,7 @@ export default function RegisterPage() {
         email,
         password,
         role,
-        ...(role === "RH" || role === "Manager" ? { departement } : {})
+        ...(role === "RH" || role === "manager" ? { departement } : {})
       };
 
       const res = await fetch("https://backendeva.onrender.com/auth/register", {
@@ -134,11 +134,11 @@ export default function RegisterPage() {
             >
               <MenuItem value="Admin">Admin</MenuItem>
               <MenuItem value="RH">RH</MenuItem>
-              <MenuItem value="Manager">Manager</MenuItem>
+              <MenuItem value="manager">Manager</MenuItem>
             </Select>
           </FormControl>
 
-          {(role === "RH" || role === "Manager") && (
+          {(role === "RH" || role === "manager") && (
             <TextField
               label="Département"
               value={departement}
