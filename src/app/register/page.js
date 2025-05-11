@@ -66,9 +66,16 @@ export default function RegisterPage() {
       });
 
       if (!res.ok) {
-        const { message } = await res.json();
-        throw new Error(message || "Erreur lors de l'inscription");
+        const errorData = await res.json();
+      
+        // Affichage d'un message spécifique si possible
+        if (errorData?.message?.toLowerCase().includes("email")) {
+          throw new Error("❌ Cet email est déjà utilisé.");
+        }
+      
+        throw new Error(errorData.message || "❌ Une erreur est survenue lors de l'inscription.");
       }
+      
 
       alert("✅ Inscription réussie !");
       router.push("/login");
