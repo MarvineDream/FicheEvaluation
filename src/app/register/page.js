@@ -2,7 +2,21 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Container, TextField, Button, Typography, Box, Paper, Alert, Link, MenuItem, Select, InputLabel, FormControl } from "@mui/material";
+import {
+  Container,
+  TextField,
+  Button,
+  Typography,
+  Box,
+  Paper,
+  Alert,
+  Link,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
+  CircularProgress
+} from "@mui/material";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -13,27 +27,42 @@ export default function RegisterPage() {
   const [role, setRole] = useState("");
   const [departement, setDepartement] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
+
+    if (!nom || !email || !password || !confirmPassword || !role) {
+      setError("Tous les champs sont requis.");
+      return;
+    }
+
+    if ((role === "RH" || role === "MANAGER") && !departement) {
+      setError("Le champ 'Département' est requis pour ce rôle.");
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError("❌ Les mots de passe ne correspondent pas !");
       return;
     }
 
+    setLoading(true);
+
     try {
+      const payload = {
+        nom,
+        email,
+        password,
+        role,
+        ...(role === "RH" || role === "MANAGER" ? { departement } : {})
+      };
+
       const res = await fetch("https://backendeva.onrender.com/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nom,
-          email,
-          password,
-          role,
-          departement: role === "manager" ? departement : null
-        })
+        body: JSON.stringify(payload)
       });
 
       if (!res.ok) {
@@ -45,6 +74,8 @@ export default function RegisterPage() {
       router.push("/login");
     } catch (err) {
       setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -101,25 +132,35 @@ export default function RegisterPage() {
               label="Rôle"
               onChange={(e) => setRole(e.target.value)}
             >
-              <MenuItem value="admin">Admin</MenuItem>
-              <MenuItem value="rh">RH</MenuItem>
-              <MenuItem value="manager">Manager</MenuItem>
+              <MenuItem value="ADMIN">Admin</MenuItem>
+              <MenuItem value="RH">RH</MenuItem>
+              <MenuItem value="MANAGER">Manager</MenuItem>
             </Select>
           </FormControl>
 
-          {role === "manager" && (
+          {(role === "RH" || role === "MANAGER") && (
             <TextField
               label="Département"
               value={departement}
+              onChange={(e) => setDepartement(e.target.value)}
               fullWidth
               margin="normal"
-              onChange={(e) => setDepartement(e.target.value)}
               required
             />
           )}
 
-          <Button type="submit" variant="contained" fullWidth sx={{ mt: 3 }}>
-            ➕ S’inscrire
+          <Button
+            type="submit"
+            variant="contained"
+            fullWidth
+            sx={{ mt: 3 }}
+            disabled={loading}
+          >
+            {loading ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              "➕ S’inscrire"
+            )}
           </Button>
         </Box>
 

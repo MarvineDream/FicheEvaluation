@@ -4,31 +4,43 @@ import { useEffect, useState } from "react";
 import {
   Container,
   Typography,
-  Grid,
   Paper,
-  List,
-  ListItem,
-  ListItemText,
+  Stack,
   Box,
   CircularProgress,
   Avatar,
   Divider,
-  Stack
+  List,
+  ListItem,
+  ListItemText,
+  Grid
 } from "@mui/material";
+import PersonIcon from "@mui/icons-material/Person";
+import { Bar, Line, Pie } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   BarElement,
   CategoryScale,
   LinearScale,
   Tooltip,
-  Legend
+  Legend,
+  PointElement,
+  LineElement,
+  ArcElement
 } from "chart.js";
-import { Bar } from "react-chartjs-2";
-import PersonIcon from "@mui/icons-material/Person";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  LineElement,
+  ArcElement,
+  Tooltip,
+  Legend
+);
 
-export default function DashboardPage() {
+export default function DashboardRHAdmin() {
   const [stats, setStats] = useState(null);
   const [user, setUser] = useState(null);
 
@@ -59,29 +71,45 @@ export default function DashboardPage() {
     );
   }
 
-  const chartData = {
-    labels: stats.parDepartement.map((d) => d.nom),
+  const contractTypeData = {
+    labels: Array.isArray(stats.parTypeContrat) ? stats.parTypeContrat.map((t) => t.type) : [],
     datasets: [
       {
-        label: "Nombre de staff",
-        data: stats.parDepartement.map((d) => d.count),
-        backgroundColor: "#1976d2"
+        label: "Type de contrat",
+        data: Array.isArray(stats.parTypeContrat) ? stats.parTypeContrat.map((t) => t.count) : [],
+        backgroundColor: ["#1976d2", "#9c27b0", "#ff9800"]
       }
     ]
   };
-
-  const chartOptions = {
-    responsive: true,
-    plugins: {
-      legend: { display: false },
-      tooltip: { enabled: true }
-    },
-    scales: {
-      y: {
-        beginAtZero: true
+  
+  const contractStatusData = {
+    labels: ["Actifs", "Expirés", "Renouvelés"],
+    datasets: [
+      {
+        label: "Statut des contrats",
+        data: [
+          stats.contratsActifs ?? 0,
+          stats.contratsExpirés ?? 0,
+          stats.contratsRenouvelés ?? 0
+        ],
+        backgroundColor: ["#4caf50", "#f44336", "#ffeb3b"]
       }
-    }
+    ]
   };
+  
+  const staffEvolutionData = {
+    labels: Array.isArray(stats.evolutionStaff) ? stats.evolutionStaff.map((e) => e.mois) : [],
+    datasets: [
+      {
+        label: "Évolution du personnel",
+        data: Array.isArray(stats.evolutionStaff) ? stats.evolutionStaff.map((e) => e.count) : [],
+        borderColor: "#1976d2",
+        backgroundColor: "rgba(25, 118, 210, 0.5)",
+        fill: true
+      }
+    ]
+  };
+  
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -99,27 +127,48 @@ export default function DashboardPage() {
         </Stack>
       </Paper>
 
-      {/* 📊 Statistiques globales */}
+      {/* 📊 Statistiques générales */}
       <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={4}>
           <StatCard title="Total du personnel" value={stats.totalStaff} />
         </Grid>
-        <Grid item xs={12} md={6}>
-          <StatCard title="Contrats expirant sous 30 jours" value={stats.contratsExpirants.length} />
+        <Grid item xs={12} md={4}>
+          <StatCard title="Nouveaux employés ce mois-ci" value={stats.nouveauxEmployes} />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <StatCard title="Départs récents" value={stats.departRecents} />
         </Grid>
       </Grid>
 
-      {/* 📈 Graphique */}
+      {/* 📈 Graphiques */}
       <Box mt={6}>
         <Typography variant="h6" gutterBottom>
-          Répartition par département
+          Répartition par type de contrat
         </Typography>
         <Paper elevation={3} sx={{ p: 3 }}>
-          <Bar data={chartData} options={chartOptions} />
+          <Bar data={contractTypeData} options={{ responsive: true }} />
         </Paper>
       </Box>
 
-      {/* 🧾 Liste des départements */}
+      <Box mt={6}>
+        <Typography variant="h6" gutterBottom>
+          Évolution du personnel
+        </Typography>
+        <Paper elevation={3} sx={{ p: 3 }}>
+          <Line data={staffEvolutionData} options={{ responsive: true }} />
+        </Paper>
+      </Box>
+
+      <Box mt={6}>
+        <Typography variant="h6" gutterBottom>
+          Statut des contrats
+        </Typography>
+        <Paper elevation={3} sx={{ p: 3 }}>
+          <Pie data={contractStatusData} options={{ responsive: true }} />
+        </Paper>
+      </Box>
+
+      {/* 🧾 Détail par département */}
       <Box mt={6}>
         <Typography variant="h6" gutterBottom>
           Détail par département

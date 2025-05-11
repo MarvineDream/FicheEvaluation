@@ -1,29 +1,33 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   Box,
   Container,
   Typography,
-  Grid,
   Paper,
-  List,
-  ListItem,
-  ListItemText,
   Button,
   Chip,
+  Stack,
+  Grid as MuiGrid,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { DataGrid } from "@mui/x-data-grid";
 import {
   Chart as ChartJS,
   BarElement,
   CategoryScale,
   LinearScale,
   Tooltip,
-  Legend,
+  Legend
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
+
+const getRandomStatus = () => {
+  const statuses = ["En attente", "En cours", "Envoyée"];
+  return statuses[Math.floor(Math.random() * statuses.length)];
+};
 
 export default function ManagerDashboardPage() {
   const [staff, setStaff] = useState([]);
@@ -34,10 +38,15 @@ export default function ManagerDashboardPage() {
       try {
         const res = await fetch("https://backendeva.onrender.com/staff");
         const data = await res.json();
+        const staffArray = Array.isArray(data)
+          ? data.map((s) => ({
+              ...s,
+              statutEvaluation: getRandomStatus()
+            }))
+          : [];
 
-        const staffArray = Array.isArray(data) ? data : [];
+        setStaff(staffArray);
 
-        // Statistiques des types de contrat
         const counts = staffArray.reduce((acc, s) => {
           acc[s.typeContrat] = (acc[s.typeContrat] || 0) + 1;
           return acc;
@@ -49,14 +58,12 @@ export default function ManagerDashboardPage() {
             {
               label: "Nombre d'agents",
               data: Object.values(counts),
-              backgroundColor: "#2196f3",
-            },
-          ],
+              backgroundColor: "#1976d2"
+            }
+          ]
         });
-
-        setStaff(staffArray);
-      } catch (error) {
-        console.error("Erreur chargement staff manager", error);
+      } catch (err) {
+        console.error("Erreur chargement staff:", err);
         setStaff([]);
       }
     };
@@ -64,73 +71,98 @@ export default function ManagerDashboardPage() {
     fetchStaff();
   }, []);
 
-  const isContractExpiring = (dateStr) => {
+  const isExpiringSoon = (dateStr) => {
+    if (!dateStr) return false;
     const now = new Date();
-    const contractDate = new Date(dateStr);
-    const diff = (contractDate - now) / (1000 * 60 * 60 * 24);
-    return diff <= 30;
+    const date = new Date(dateStr);
+    const diff = (date - now) / (1000 * 60 * 60 * 24);
+    return diff >= 0 && diff <= 7;
   };
+
+  const expiringStaff = staff.filter((s) => isExpiringSoon(s.dateFinContrat));
+  const evalEnAttente = staff.filter((s) => s.statutEvaluation === "En attente");
+  const evalEnvoyees = staff.filter((s) => s.statutEvaluation === "Envoyée");
+
+  const columns = [
+    { field: "nom", headerName: "Nom", flex: 1 },
+    { field: "prenom", headerName: "Prénom", flex: 1 },
+    { field: "emploi", headerName: "Emploi", flex: 1 },
+    { field: "departement", headerName: "Département", flex: 1 },
+    {
+      field: "dateFinContrat",
+      headerName: "Fin de contrat",
+      flex: 1,
+      valueFormatter: ({ value }) => (value ? new Date(value).toLocaleDateString() : "—")
+    },
+    {
+      field: "statutEvaluation",
+      headerName: "Évaluation",
+      flex: 1,
+      renderCell: (params) => (
+        <Chip
+          label={params.value}
+          color={
+            params.value === "Envoyée"
+              ? "success"
+              : params.value === "En attente"
+              ? "warning"
+              : "info"
+          }
+        />
+      )
+    }
+  ];
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h4" fontWeight="bold" gutterBottom>
+      <Typography variant="h4" gutterBottom fontWeight="bold">
         Tableau de bord Manager
       </Typography>
 
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
-          <StatCard title="Total du personnel" value={staff.length} />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <StatCard
-            title="Contrats expirant sous 30 jours"
-            value={staff.filter((s) => isContractExpiring(s.dateFinContrat)).length}
-          />
-        </Grid>
-      </Grid>
+      {/* Résumé */}
+      <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap" mb={3}>
+        <StatCard title="Total collaborateurs" value={staff.length} />
+        <StatCard title="Contrats expirant sous 7j" value={expiringStaff.length} />
+        <StatCard title="Évaluations à remplir" value={evalEnAttente.length} />
+        <StatCard title="Évaluations envoyées" value={evalEnvoyees.length} />
+      </Stack>
 
-      <Box mt={6}>
+      {/* Graphique */}
+      <Box my={4}>
         <Typography variant="h6" gutterBottom>
-          Répartition des types de contrats
+          Répartition par type de contrat
         </Typography>
-        <Paper elevation={3} sx={{ p: 2 }}>
+        <Paper elevation={2} sx={{ p: 2 }}>
           <Bar data={chartData} />
         </Paper>
       </Box>
 
-      <Box mt={6}>
+      {/* Liste des collaborateurs */}
+      <Box my={4}>
         <Typography variant="h6" gutterBottom>
           Équipe sous votre responsabilité
         </Typography>
-        <Paper elevation={1}>
-          <List>
-            {staff.map((agent) => (
-              <ListItem
-                key={agent._id}
-                divider
-                secondaryAction={
-                  <Chip
-                    label={isContractExpiring(agent.dateFinContrat) ? "Contrat expirant" : "Actif"}
-                    color={isContractExpiring(agent.dateFinContrat) ? "warning" : "success"}
-                  />
-                }
-              >
-                <ListItemText
-                  primary={`${agent.nom} ${agent.prenom}`}
-                  secondary={`Poste: ${agent.emploi} | Département: ${agent.departement}`}
-                />
-              </ListItem>
-            ))}
-          </List>
+        <Paper elevation={2} sx={{ height: 500 }}>
+          <DataGrid
+            rows={staff}
+            columns={columns}
+            getRowId={(row) => row._id}
+            pageSize={10}
+            disableRowSelectionOnClick
+          />
         </Paper>
       </Box>
 
-      <Box mt={6} display="flex" gap={2}>
+      {/* Accès rapide */}
+      <Box mt={4} display="flex" flexWrap="wrap" gap={2}>
         <Button variant="contained" color="primary" href="/with-sidebar/evaluation">
           ➕ Remplir une évaluation
         </Button>
         <Button variant="outlined" color="secondary" href="/with-sidebar/staff">
           👥 Gérer mon équipe
+        </Button>
+        <Button variant="outlined" href="/with-sidebar/historique">
+          📄 Historique des évaluations
         </Button>
       </Box>
     </Container>
@@ -139,8 +171,10 @@ export default function ManagerDashboardPage() {
 
 function StatCard({ title, value }) {
   return (
-    <Paper elevation={3} sx={{ p: 3 }}>
-      <Typography variant="subtitle1">{title}</Typography>
+    <Paper elevation={3} sx={{ p: 2, minWidth: 220 }}>
+      <Typography variant="subtitle2" color="textSecondary">
+        {title}
+      </Typography>
       <Typography variant="h5" fontWeight="bold">
         {value}
       </Typography>

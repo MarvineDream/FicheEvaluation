@@ -11,14 +11,12 @@ import {
   MenuItem,
   Select,
   TextField,
-  Typography
+  Typography,
+  Paper
 } from "@mui/material";
-import Paper from "@mui/material/Paper";
 import { DataGrid } from "@mui/x-data-grid";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-
-
 
 const API_URL = "https://backendeva.onrender.com/staff";
 
@@ -43,11 +41,8 @@ export default function StaffPage() {
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(`${API_URL}/All`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` }
       });
-
       const data = await res.json();
       if (Array.isArray(data)) {
         setStaffs(data);
@@ -131,7 +126,8 @@ export default function StaffPage() {
       field: "dateEmbauche",
       headerName: "Embauche",
       flex: 1,
-      valueFormatter: (params) => new Date(params.value).toLocaleDateString()
+      valueFormatter: (params) =>
+        new Date(params.value).toLocaleDateString()
     },
     {
       field: "dateFinContrat",
@@ -187,7 +183,6 @@ export default function StaffPage() {
         />
       </Paper>
 
-      {/* Drawer pour ajout/modification */}
       <Drawer anchor="right" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
         <Box sx={{ width: 400, p: 3 }}>
           <Typography variant="h6" gutterBottom>
@@ -216,10 +211,10 @@ export default function StaffPage() {
               ))}
               <Grid item xs={12}>
                 <Select
+                  fullWidth
                   name="typeContrat"
                   value={form.typeContrat}
                   onChange={handleChange}
-                  fullWidth
                 >
                   <MenuItem value="CDD">CDD</MenuItem>
                   <MenuItem value="CDI">CDI</MenuItem>
@@ -228,28 +223,29 @@ export default function StaffPage() {
               </Grid>
               <Grid item xs={12}>
                 <TextField
+                  fullWidth
                   name="dateEmbauche"
                   label="Date d'embauche"
                   type="date"
-                  fullWidth
-                  InputLabelProps={{ shrink: true }}
                   value={form.dateEmbauche}
                   onChange={handleChange}
+                  InputLabelProps={{ shrink: true }}
+                  required
                 />
               </Grid>
               <Grid item xs={12}>
                 <TextField
-                  name="dateFinContrat"
-                  label="Date de fin de contrat"
-                  type="date"
                   fullWidth
-                  InputLabelProps={{ shrink: true }}
+                  name="dateFinContrat"
+                  label="Date fin de contrat"
+                  type="date"
                   value={form.dateFinContrat}
                   onChange={handleChange}
+                  InputLabelProps={{ shrink: true }}
                 />
               </Grid>
               <Grid item xs={12}>
-                <Button fullWidth variant="contained" type="submit">
+                <Button type="submit" variant="contained" fullWidth>
                   {editingId ? "Modifier" : "Ajouter"}
                 </Button>
               </Grid>
