@@ -18,31 +18,33 @@ export default function StaffPage() {
   });
   const [editingId, setEditingId] = useState(null);
 
+  // Simuler un statut d’évaluation
   const getRandomStatus = () => {
     const statusList = ["En attente", "En cours", "Envoyée"];
     return statusList[Math.floor(Math.random() * statusList.length)];
   };
 
-  const fetchStaff = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${API_URL}/manager`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      const staffArray = Array.isArray(data)
-        ? data.map((s) => ({ ...s, statutEvaluation: getRandomStatus() }))
-        : [];
-      setStaffs(staffArray);
-    } catch (err) {
-      console.error("Erreur chargement staff manager:", err);
-      setStaffs([]);
-    }
-  };
-
   useEffect(() => {
+    const fetchStaff = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${API_URL}/manager`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        const staffArray = Array.isArray(data)
+          ? data.map((s) => ({ ...s, statutEvaluation: getRandomStatus() }))
+          : [];
+        setStaffs(staffArray);
+      } catch (err) {
+        console.error("Erreur chargement staff manager:", err);
+        setStaffs([]);
+      }
+    };
+  
     fetchStaff();
   }, []);
+  
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -50,27 +52,39 @@ export default function StaffPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const token = localStorage.getItem("token");
     const method = editingId ? "PUT" : "POST";
     const url = editingId ? `${API_URL}/${editingId}` : API_URL;
 
-    await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(form),
+      });
 
-    setForm({
-      nom: "",
-      prenom: "",
-      email: "",
-      poste: "",
-      departement: "",
-      typeContrat: "CDD",
-      dateEmbauche: "",
-      dateFinContrat: "",
-    });
-    setEditingId(null);
-    fetchStaff();
+      if (!res.ok) {
+        throw new Error("Erreur lors de l'enregistrement");
+      }
+
+      setForm({
+        nom: "",
+        prenom: "",
+        email: "",
+        poste: "",
+        departement: "",
+        typeContrat: "CDD",
+        dateEmbauche: "",
+        dateFinContrat: "",
+      });
+      setEditingId(null);
+      fetchStaff();
+    } catch (err) {
+      console.error(err.message);
+    }
   };
 
   const handleEdit = (staff) => {
@@ -88,8 +102,12 @@ export default function StaffPage() {
   };
 
   const handleDelete = async (id) => {
+    const token = localStorage.getItem("token");
     if (confirm("Supprimer ce membre du staff ?")) {
-      await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+      await fetch(`${API_URL}/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
       fetchStaff();
     }
   };
@@ -114,11 +132,10 @@ export default function StaffPage() {
                 value={form[field]}
                 onChange={handleChange}
                 className="border px-3 py-2 rounded w-full"
-                required={["nom", "email", "poste", "departement"].includes(
-                  field
-                )}
+                required={["nom", "email", "poste", "departement"].includes(field)}
               />
             ))}
+
             <select
               name="typeContrat"
               value={form.typeContrat}
@@ -130,6 +147,7 @@ export default function StaffPage() {
               <option value="CDI">CDI</option>
               <option value="Stagiaire">Stagiaire</option>
             </select>
+
             <input
               type="date"
               name="dateEmbauche"
@@ -146,6 +164,7 @@ export default function StaffPage() {
               className="border px-3 py-2 rounded w-full"
             />
           </div>
+
           <button
             type="submit"
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
@@ -188,7 +207,7 @@ export default function StaffPage() {
                           ? "bg-orange-500"
                           : s.statutEvaluation === "En cours"
                           ? "bg-blue-500"
-                          : "bg-green-500"
+                          : "bg-green-600"
                       }`}
                     >
                       {s.statutEvaluation}
