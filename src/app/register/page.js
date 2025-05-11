@@ -15,7 +15,7 @@ import {
   Select,
   InputLabel,
   FormControl,
-  CircularProgress
+  CircularProgress,
 } from "@mui/material";
 
 export default function RegisterPage() {
@@ -62,7 +62,13 @@ export default function RegisterPage() {
       const res = await fetch("https://backendeva.onrender.com/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          nom,
+          email,
+          password,
+          role: role.toUpperCase(),
+          departement: role === "MANAGER" || role === "RH" ? departement : undefined,
+        }),
       });
 
       if (!res.ok) {
@@ -144,7 +150,6 @@ export default function RegisterPage() {
               <MenuItem value="Manager">Manager</MenuItem>
             </Select>
           </FormControl>
-
           {(role === "RH" || role === "Manager") && (
             <TextField
               label="Département"

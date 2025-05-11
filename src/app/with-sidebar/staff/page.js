@@ -6,7 +6,6 @@ import {
   Button,
   Container,
   Drawer,
-  Grid,
   IconButton,
   MenuItem,
   Select,
@@ -40,18 +39,13 @@ export default function StaffPage() {
   const fetchStaff = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${API_URL}/All`, {
+      const res = await fetch(`${API_URL}/manager`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
-      if (Array.isArray(data)) {
-        setStaffs(data);
-      } else {
-        setStaffs([]);
-      }
+      setStaffs(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error("Erreur de récupération du staff :", error);
-      setStaffs([]);
+      console.error("Erreur de chargement du staff :", error);
     }
   };
 
@@ -121,13 +115,12 @@ export default function StaffPage() {
     { field: "email", headerName: "Email", flex: 1.5 },
     { field: "poste", headerName: "Poste", flex: 1 },
     { field: "departement", headerName: "Département", flex: 1 },
-    { field: "typeContrat", headerName: "Contrat", flex: 0.8 },
+    { field: "typeContrat", headerName: "Contrat", flex: 1 },
     {
       field: "dateEmbauche",
       headerName: "Embauche",
       flex: 1,
-      valueFormatter: (params) =>
-        new Date(params.value).toLocaleDateString()
+      valueFormatter: (params) => new Date(params.value).toLocaleDateString()
     },
     {
       field: "dateFinContrat",
@@ -140,7 +133,7 @@ export default function StaffPage() {
       field: "actions",
       headerName: "Actions",
       sortable: false,
-      flex: 0.8,
+      flex: 1,
       renderCell: (params) => (
         <>
           <IconButton onClick={() => handleEdit(params.row)}>
@@ -189,67 +182,45 @@ export default function StaffPage() {
             {editingId ? "Modifier le staff" : "Ajouter un membre"}
           </Typography>
           <form onSubmit={handleSubmit}>
-            <Grid container spacing={2}>
-              {[
-                { name: "nom", label: "Nom" },
-                { name: "prenom", label: "Prénom" },
-                { name: "email", label: "Email", type: "email" },
-                { name: "poste", label: "Poste" },
-                { name: "departement", label: "Département" }
-              ].map((field) => (
-                <Grid item xs={12} key={field.name}>
-                  <TextField
-                    fullWidth
-                    label={field.label}
-                    name={field.name}
-                    type={field.type || "text"}
-                    value={form[field.name]}
-                    onChange={handleChange}
-                    required={["nom", "email", "poste", "departement"].includes(field.name)}
-                  />
-                </Grid>
-              ))}
-              <Grid item xs={12}>
-                <Select
-                  fullWidth
-                  name="typeContrat"
-                  value={form.typeContrat}
-                  onChange={handleChange}
-                >
-                  <MenuItem value="CDD">CDD</MenuItem>
-                  <MenuItem value="CDI">CDI</MenuItem>
-                  <MenuItem value="Stagiaire">Stagiaire</MenuItem>
-                </Select>
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  name="dateEmbauche"
-                  label="Date d'embauche"
-                  type="date"
-                  value={form.dateEmbauche}
-                  onChange={handleChange}
-                  InputLabelProps={{ shrink: true }}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  name="dateFinContrat"
-                  label="Date fin de contrat"
-                  type="date"
-                  value={form.dateFinContrat}
-                  onChange={handleChange}
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <Button type="submit" variant="contained" fullWidth>
-                  {editingId ? "Modifier" : "Ajouter"}
-                </Button>
-              </Grid>
-            </Grid>
+            <TextField name="nom" label="Nom" value={form.nom} onChange={handleChange} fullWidth required sx={{ mb: 2 }} />
+            <TextField name="prenom" label="Prénom" value={form.prenom} onChange={handleChange} fullWidth sx={{ mb: 2 }} />
+            <TextField name="email" label="Email" value={form.email} onChange={handleChange} fullWidth required sx={{ mb: 2 }} />
+            <TextField name="poste" label="Poste" value={form.poste} onChange={handleChange} fullWidth required sx={{ mb: 2 }} />
+            <TextField name="departement" label="Département" value={form.departement} onChange={handleChange} fullWidth required sx={{ mb: 2 }} />
+            <Select
+              name="typeContrat"
+              value={form.typeContrat}
+              onChange={handleChange}
+              fullWidth
+              sx={{ mb: 2 }}
+            >
+              <MenuItem value="CDD">CDD</MenuItem>
+              <MenuItem value="CDI">CDI</MenuItem>
+              <MenuItem value="Stagiaire">Stagiaire</MenuItem>
+            </Select>
+            <TextField
+              name="dateEmbauche"
+              label="Date d'embauche"
+              type="date"
+              value={form.dateEmbauche}
+              onChange={handleChange}
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              name="dateFinContrat"
+              label="Date de fin de contrat"
+              type="date"
+              value={form.dateFinContrat}
+              onChange={handleChange}
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+              sx={{ mb: 2 }}
+            />
+            <Button type="submit" variant="contained" fullWidth>
+              {editingId ? "Modifier" : "Ajouter"}
+            </Button>
           </form>
         </Box>
       </Drawer>
