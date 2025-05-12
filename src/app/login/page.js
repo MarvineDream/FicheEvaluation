@@ -50,7 +50,7 @@ export default function LoginPage() {
         case "RH":
           router.push("/with-sidebar/dashboard");
           break;
-        case "manager":
+        case "Manager":
           router.push(`/with-sidebar/manager-dashboard?departement=${user.departement}`);
           break;
         default:
