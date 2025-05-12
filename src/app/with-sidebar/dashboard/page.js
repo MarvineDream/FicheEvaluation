@@ -52,13 +52,27 @@ export default function DashboardRHAdmin() {
 
     const fetchStats = async () => {
       try {
-        const res = await fetch("https://backendeva.onrender.com/staff/stats");
+        const storedUser = localStorage.getItem("user");
+        const token = storedUser ? JSON.parse(storedUser).token : null;
+    
+        const res = await fetch("https://backendeva.onrender.com/staff/stats", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+    
+        if (!res.ok) {
+          throw new Error(`Erreur HTTP: ${res.status}`);
+        }
+    
         const data = await res.json();
         setStats(data);
       } catch (err) {
         console.error("Erreur de chargement des stats", err);
       }
     };
+    
 
     fetchStats();
   }, []);
