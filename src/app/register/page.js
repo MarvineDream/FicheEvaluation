@@ -33,14 +33,13 @@ export default function RegisterPage() {
     e.preventDefault();
     setError("");
 
-    if ( !nom.trim() ||!email.trim() ||!password ||!confirmPassword ||!role.trim()) 
-     {
-      setError("Tous les champs sont requis.");
+    // Validation de base
+    if (!nom.trim() || !email.trim() || !password || !confirmPassword || !role) {
+      setError("Tous les champs obligatoires doivent être remplis.");
       return;
-     }
-    
+    }
 
-    if ((role === "RH" || role === "Manager") && !departement) {
+    if ((role === "RH" || role === "Manager") && !departement.trim()) {
       setError("Le champ 'Département' est requis pour ce rôle.");
       return;
     }
@@ -57,33 +56,25 @@ export default function RegisterPage() {
         nom,
         email,
         password,
-        role,
-        ...(role === "RH" || role === "Manager" ? { departement } : {})
+        role: role.toUpperCase(),
+        ...(role === "Manager" || role === "RH" ? { departement } : {}),
       };
 
       const res = await fetch("https://backendeva.onrender.com/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nom,
-          email,
-          password,
-          role: role.toUpperCase(),
-          departement: role === "Manager" || role === "RH" ? departement : undefined,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
         const errorData = await res.json();
-      
-        // Affichage d'un message spécifique si possible
+
         if (errorData?.message?.toLowerCase().includes("email")) {
           throw new Error("❌ Cet email est déjà utilisé.");
         }
-      
+
         throw new Error(errorData.message || "❌ Une erreur est survenue lors de l'inscription.");
       }
-      
 
       alert("✅ Inscription réussie !");
       router.push("/login");
@@ -152,6 +143,7 @@ export default function RegisterPage() {
               <MenuItem value="Manager">Manager</MenuItem>
             </Select>
           </FormControl>
+
           {(role === "RH" || role === "Manager") && (
             <TextField
               label="Département"
