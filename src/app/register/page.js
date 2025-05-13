@@ -33,10 +33,12 @@ export default function RegisterPage() {
     e.preventDefault();
     setError("");
 
-    if (!nom || !email || !password || !confirmPassword || !role) {
+    if ( !nom.trim() ||!email.trim() ||!password ||!confirmPassword ||!role.trim()) 
+     {
       setError("Tous les champs sont requis.");
       return;
-    }
+     }
+    
 
     if ((role === "RH" || role === "Manager") && !departement) {
       setError("Le champ 'Département' est requis pour ce rôle.");
@@ -67,7 +69,7 @@ export default function RegisterPage() {
           email,
           password,
           role: role.toUpperCase(),
-          departement: role === "MANAGER" || role === "RH" ? departement : undefined,
+          departement: role === "Manager" || role === "RH" ? departement : undefined,
         }),
       });
 

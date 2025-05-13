@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import useAuth from "@/app/hooks/useAuth";
 import {
   Box,
   Container,
@@ -9,7 +10,6 @@ import {
   Button,
   Chip,
   Stack,
-  Grid as MuiGrid,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import {
@@ -18,7 +18,7 @@ import {
   CategoryScale,
   LinearScale,
   Tooltip,
-  Legend
+  Legend,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
 
@@ -30,46 +30,59 @@ const getRandomStatus = () => {
 };
 
 export default function ManagerDashboardPage() {
+  const { user, token, staff: staffFromHook, isLoading } = useAuth();
   const [staff, setStaff] = useState([]);
   const [chartData, setChartData] = useState({ labels: [], datasets: [] });
 
   useEffect(() => {
-    const fetchStaff = async () => {
+    if (!user || isLoading) return;
+
+    const fetchStaffForHRorAdmin = async () => {
       try {
-        const res = await fetch("https://backendeva.onrender.com/staff");
-        const data = await res.json();
-        const staffArray = Array.isArray(data)
-          ? data.map((s) => ({
-              ...s,
-              statutEvaluation: getRandomStatus()
-            }))
-          : [];
-
-        setStaff(staffArray);
-
-        const counts = staffArray.reduce((acc, s) => {
-          acc[s.typeContrat] = (acc[s.typeContrat] || 0) + 1;
-          return acc;
-        }, {});
-
-        setChartData({
-          labels: Object.keys(counts),
-          datasets: [
-            {
-              label: "Nombre d'agents",
-              data: Object.values(counts),
-              backgroundColor: "#1976d2"
-            }
-          ]
+        const res = await fetch("https://backendeva.onrender.com/staff", {
+          headers: { Authorization: `Bearer ${token}` },
         });
+        const data = await res.json();
+        const enhanced = data.map((s) => ({
+          ...s,
+          statutEvaluation: getRandomStatus(),
+        }));
+        setStaff(enhanced);
+        updateChartData(enhanced);
       } catch (err) {
-        console.error("Erreur chargement staff:", err);
-        setStaff([]);
+        console.error("Erreur chargement staff (RH/Admin):", err);
       }
     };
 
-    fetchStaff();
-  }, []);
+    // Si Manager, on utilise le hook (déjà filtré)
+    if (user.role === "Manager") {
+      const enhanced = staffFromHook.map((s) => ({
+        ...s,
+        statutEvaluation: getRandomStatus(),
+      }));
+      setStaff(enhanced);
+      updateChartData(enhanced);
+    } else {
+      fetchStaffForHRorAdmin();
+    }
+  }, [user, token, staffFromHook, isLoading]);
+
+  const updateChartData = (staffArray) => {
+    const counts = staffArray.reduce((acc, s) => {
+      acc[s.typeContrat] = (acc[s.typeContrat] || 0) + 1;
+      return acc;
+    }, {});
+    setChartData({
+      labels: Object.keys(counts),
+      datasets: [
+        {
+          label: "Nombre d'agents",
+          data: Object.values(counts),
+          backgroundColor: "#1976d2",
+        },
+      ],
+    });
+  };
 
   const isExpiringSoon = (dateStr) => {
     if (!dateStr) return false;
@@ -92,7 +105,8 @@ export default function ManagerDashboardPage() {
       field: "dateFinContrat",
       headerName: "Fin de contrat",
       flex: 1,
-      valueFormatter: ({ value }) => (value ? new Date(value).toLocaleDateString() : "—")
+      valueFormatter: ({ value }) =>
+        value ? new Date(value).toLocaleDateString() : "—",
     },
     {
       field: "statutEvaluation",
@@ -109,20 +123,23 @@ export default function ManagerDashboardPage() {
               : "info"
           }
         />
-      )
-    }
+      ),
+    },
   ];
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Typography variant="h4" gutterBottom fontWeight="bold">
-        Tableau de bord Manager
+        Tableau de bord {user?.role === "Manager" ? "Manager" : "RH / admin"}
       </Typography>
 
       {/* Résumé */}
       <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap" mb={3}>
         <StatCard title="Total collaborateurs" value={staff.length} />
-        <StatCard title="Contrats expirant sous 7j" value={expiringStaff.length} />
+        <StatCard
+          title="Contrats expirant sous 7j"
+          value={expiringStaff.length}
+        />
         <StatCard title="Évaluations à remplir" value={evalEnAttente.length} />
         <StatCard title="Évaluations envoyées" value={evalEnvoyees.length} />
       </Stack>
@@ -155,7 +172,11 @@ export default function ManagerDashboardPage() {
 
       {/* Accès rapide */}
       <Box mt={4} display="flex" flexWrap="wrap" gap={2}>
-        <Button variant="contained" color="primary" href="/with-sidebar/evaluation">
+        <Button
+          variant="contained"
+          color="primary"
+          href="/with-sidebar/evaluation"
+        >
           ➕ Remplir une évaluation
         </Button>
         <Button variant="outlined" color="secondary" href="/with-sidebar/staff">
