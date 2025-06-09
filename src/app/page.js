@@ -3,5 +3,5 @@ import { redirect } from 'next/navigation';
 
 
 export default function RootPage() {
-  redirect ("/register");
+  redirect ("/login");
 }

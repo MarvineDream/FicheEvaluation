@@ -2,31 +2,34 @@
 
 import { useEffect, useState } from "react";
 import {
-  Box,
-  Button,
   Container,
+  Typography,
+  TextField,
+  Button,
+  Paper,
+  Box,
   Drawer,
   IconButton,
   MenuItem,
   Select,
-  TextField,
-  Typography,
-  Paper,
   Alert
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import EvaluationStepper from '@/components/EvaluationStepper';
 
-const API_URL = "https://backendeva.onrender.com";
+const API_URL = "http://localhost:7000";
 
 export default function StaffPage() {
   const [staffs, setStaffs] = useState([]);
-  const [filterDept, setFilterDept] = useState("");
-  const [editingId, setEditingId] = useState(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState("");
+  const [filterDept, setFilterDept] = useState("");
   const [error, setError] = useState("");
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [selectedStaff, setSelectedStaff] = useState(null);
 
   const [form, setForm] = useState({
     nom: "",
@@ -39,69 +42,47 @@ export default function StaffPage() {
     dateFinContrat: ""
   });
 
-  const fetchUserRole = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-
-      const res = await fetch(`${API_URL}/staff/me`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      if (!res.ok) throw new Error("Erreur lors de la récupération du rôle");
-
-      const data = await res.json();
-      setUserRole(data.role || "");
-    } catch (error) {
-      console.error(error);
-      setError("Impossible de récupérer le rôle de l'utilisateur.");
-    }
-  };
-
-  const fetchStaff = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-
-      let route = "/staff/Manager";
-      if (userRole === "RH" || userRole === "admin") {
-        route = "/staff/All";
-      }
-
-      const res = await fetch(`${API_URL}${route}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      if (!res.ok) throw new Error("Erreur lors de la récupération du staff");
-
-      const data = await res.json();
-      setStaffs(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error(error);
-      setError("Erreur de chargement des données du personnel.");
-    }
-  };
-
   useEffect(() => {
-    fetchUserRole();
+    const stored = localStorage.getItem("user");
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      setUser(parsed);
+      setUserRole(parsed.role);
+    }
   }, []);
 
   useEffect(() => {
-    if (userRole) fetchStaff();
+    if (!userRole) return;
+
+    const fetchStaff = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        const route = userRole === "RH" || userRole === "admin" ? "/staff/All" : "/staff/manager";
+
+        const res = await fetch(`${API_URL}${route}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        const data = await res.json();
+        setStaffs(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error(err);
+        setError("Erreur de chargement du personnel");
+      }
+    };
+
+    fetchStaff();
   }, [userRole]);
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-
     const method = editingId ? "PUT" : "POST";
-    const url = editingId
-      ? `${API_URL}/staff/${editingId}`
-      : `${API_URL}/staff`;
+    const url = editingId ? `${API_URL}/staff/${editingId}` : `${API_URL}/staff`;
 
     try {
       const res = await fetch(url, {
@@ -113,7 +94,7 @@ export default function StaffPage() {
         body: JSON.stringify(form)
       });
 
-      if (!res.ok) throw new Error("Erreur lors de l'enregistrement.");
+      if (!res.ok) throw new Error("Erreur lors de l'enregistrement");
 
       setForm({
         nom: "",
@@ -128,62 +109,43 @@ export default function StaffPage() {
       setEditingId(null);
       setDrawerOpen(false);
       setError("");
-      fetchStaff();
+      window.location.reload();
     } catch (err) {
-      console.error(err);
-      setError("Erreur lors de l'ajout ou modification du staff.");
+      setError(err.message);
     }
   };
 
-  // Fonction utilitaire pour convertir dd/MM/yyyy → yyyy-MM-dd
-const convertToISO = (dateStr) => {
-  if (!dateStr) return "";
-  const [day, month, year] = dateStr.split("/");
-  return `${year}-${month}-${day}`;
-};
-
-const handleEdit = (staff) => {
-  setForm({
-    nom: staff.nom,
-    prenom: staff.prenom || "",
-    email: staff.email,
-    poste: staff.poste,
-    departement: staff.departement,
-    typeContrat: staff.typeContrat,
-    dateEmbauche: staff.dateEmbauche
-      ? convertToISO(staff.dateEmbauche)
-      : "",
-    dateFinContrat: staff.dateFinContrat
-      ? convertToISO(staff.dateFinContrat)
-      : "",
-  });
-  setEditingId(staff._id);
-  setDrawerOpen(true);
-  setError("");
-};
+  const handleEdit = (staff) => {
+    setForm({
+      nom: staff.nom,
+      prenom: staff.prenom || "",
+      email: staff.email,
+      poste: staff.poste,
+      departement: staff.departement,
+      typeContrat: staff.typeContrat,
+      dateEmbauche: staff.dateEmbauche?.substring(0, 10) || "",
+      dateFinContrat: staff.dateFinContrat?.substring(0, 10) || ""
+    });
+    setEditingId(staff._id);
+    setDrawerOpen(true);
+  };
 
   const handleDelete = async (id) => {
-    const confirmDelete = confirm("Supprimer ce membre du staff ?");
-    if (!confirmDelete) return;
-
+    if (userRole !== "RH" && userRole !== "admin") return;
     const token = localStorage.getItem("token");
+
     try {
       const res = await fetch(`${API_URL}/staff/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      if (!res.ok) throw new Error("Erreur lors de la suppression.");
-      fetchStaff();
+      if (!res.ok) throw new Error("Erreur suppression");
+      setStaffs(staffs.filter((s) => s._id !== id));
     } catch (err) {
-      console.error(err);
-      setError("Erreur lors de la suppression du membre.");
+      setError("Erreur de suppression");
     }
   };
-
-  const filteredStaffs = staffs.filter((s) =>
-    s.departement.toLowerCase().includes(filterDept.toLowerCase())
-  );
 
   const columns = [
     { field: "nom", headerName: "Nom", flex: 1 },
@@ -193,32 +155,37 @@ const handleEdit = (staff) => {
     { field: "departement", headerName: "Département", flex: 1 },
     { field: "typeContrat", headerName: "Contrat", flex: 1 },
     {
-      field: "dateEmbauche",
-      headerName: "date Embauche",
-      flex: 1,
-      valueFormatter: (params) =>
-        new Date(params.value).toLocaleDateString("fr-FR")
+      field: "dateEmbauche", headerName: "Date Embauche", flex: 1,
+      valueFormatter: (params) => {
+        return params.value ? new Date(params.value).toLocaleDateString("fr-FR") : "-";
+      }
     },
     {
-      field: "dateFinContrat",
-      headerName: "Fin Contrat",
-      flex: 1,
-      valueFormatter: (params) =>
-        params.value ? new Date(params.value).toLocaleDateString("fr-FR") : "-"
+      field: "dateFinContrat", headerName: "Fin Contrat", flex: 1,
+      valueFormatter: (params) => {
+        return params.value ? new Date(params.value).toLocaleDateString("fr-FR") : "-";
+      }
     },
     {
       field: "actions",
       headerName: "Actions",
-      sortable: false,
       flex: 1,
       renderCell: (params) => (
         <>
-          <IconButton onClick={() => handleEdit(params.row)}>
-            <EditIcon color="primary" />
-          </IconButton>
-          <IconButton onClick={() => handleDelete(params.row._id)}>
-            <DeleteIcon color="error" />
-          </IconButton>
+          {(userRole === "RH" || userRole === "admin") && (
+            <>
+              <IconButton onClick={() => handleEdit(params.row)}><EditIcon color="primary" /></IconButton>
+              <IconButton onClick={() => handleDelete(params.row._id)}><DeleteIcon color="error" /></IconButton>
+            </>
+          )}
+          <Button
+            size="small"
+            onClick={() => setSelectedStaff(params.row)}
+            variant="outlined"
+            color="success"
+          >
+            Évaluer
+          </Button>
         </>
       )
     }
@@ -226,50 +193,46 @@ const handleEdit = (staff) => {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        Gestion du Personnel
-      </Typography>
-
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
+      <Typography variant="h4" gutterBottom>Gestion du Personnel</Typography>
+      {error && <Alert severity="error">{error}</Alert>}
 
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
         <TextField
           label="Filtrer par département"
           value={filterDept}
           onChange={(e) => setFilterDept(e.target.value)}
-          sx={{ width: "50%" }}
         />
-        <Button variant="contained" onClick={() => setDrawerOpen(true)}>
-          Ajouter un membre
-        </Button>
+        {(userRole === "RH" || userRole === "admin") && (
+          <Button variant="contained" onClick={() => setDrawerOpen(true)}>
+            Ajouter
+          </Button>
+        )}
       </Box>
 
-      <Paper elevation={3} sx={{ height: 550 }}>
+      <Paper sx={{ height: 500 }}>
         <DataGrid
-          rows={filteredStaffs}
+          rows={staffs.filter((s) => s.departement.toLowerCase().includes(filterDept.toLowerCase()))}
           columns={columns}
           getRowId={(row) => row._id}
-          pageSize={10}
-          rowsPerPageOptions={[10, 20, 50]}
-          disableSelectionOnClick
         />
       </Paper>
 
       <Drawer anchor="right" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
         <Box sx={{ width: 400, p: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            {editingId ? "Modifier le staff" : "Ajouter un membre"}
-          </Typography>
+          <Typography variant="h6">{editingId ? "Modifier" : "Ajouter un membre"}</Typography>
           <form onSubmit={handleSubmit}>
-            <TextField name="nom" label="Nom" value={form.nom} onChange={handleChange} fullWidth required sx={{ mb: 2 }} />
-            <TextField name="prenom" label="Prénom" value={form.prenom} onChange={handleChange} fullWidth sx={{ mb: 2 }} />
-            <TextField name="email" label="Email" value={form.email} onChange={handleChange} fullWidth required sx={{ mb: 2 }} />
-            <TextField name="poste" label="Poste" value={form.poste} onChange={handleChange} fullWidth required sx={{ mb: 2 }} />
-            <TextField name="departement" label="Département" value={form.departement} onChange={handleChange} fullWidth required sx={{ mb: 2 }} />
+            {["nom", "prenom", "email", "poste", "departement"].map((field) => (
+              <TextField
+                key={field}
+                name={field}
+                label={field.charAt(0).toUpperCase() + field.slice(1)}
+                value={form[field]}
+                onChange={handleChange}
+                fullWidth
+                required
+                sx={{ mb: 2 }}
+              />
+            ))}
             <Select
               name="typeContrat"
               value={form.typeContrat}
@@ -293,7 +256,7 @@ const handleEdit = (staff) => {
             />
             <TextField
               name="dateFinContrat"
-              label="Date de fin de contrat"
+              label="Fin de contrat"
               type="date"
               value={form.dateFinContrat}
               onChange={handleChange}
@@ -301,12 +264,28 @@ const handleEdit = (staff) => {
               InputLabelProps={{ shrink: true }}
               sx={{ mb: 2 }}
             />
-            <Button type="submit" variant="contained" fullWidth>
+            <Button type="submit" fullWidth variant="contained">
               {editingId ? "Modifier" : "Ajouter"}
             </Button>
           </form>
         </Box>
       </Drawer>
+
+      {selectedStaff && selectedStaff._id && (
+        <Box sx={{ mt: 4 }}>
+          <Typography variant="h5" gutterBottom>
+            Évaluation de {selectedStaff.nom} {selectedStaff.prenom}
+          </Typography>
+          <EvaluationStepper
+            staff={selectedStaff}
+            periodeEvaluation="Annuel"
+            token={localStorage.getItem("token")}
+          />
+          <Button sx={{ mt: 2 }} onClick={() => setSelectedStaff(null)}>
+            Fermer l&apos;évaluation
+          </Button>
+        </Box>
+      )}
     </Container>
   );
 }

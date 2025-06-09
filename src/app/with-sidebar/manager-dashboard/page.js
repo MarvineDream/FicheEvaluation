@@ -1,190 +1,186 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import useAuth from "@/app/hooks/useAuth";
 import {
   Box,
   Container,
-  Typography,
+  Grid,
   Paper,
+  Typography,
+  List,
+  ListItem,
+  ListItemText,
   Button,
-  Chip,
-  Stack,
+  CircularProgress,
+  Avatar,
+  Stack
 } from "@mui/material";
-import { DataGrid } from "@mui/x-data-grid";
-import {
-  Chart as ChartJS,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  Tooltip,
-  Legend,
-} from "chart.js";
-import { Bar } from "react-chartjs-2";
+import PersonIcon from "@mui/icons-material/Person";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
-
-const getRandomStatus = () => {
-  const statuses = ["En attente", "En cours", "Envoyée"];
-  return statuses[Math.floor(Math.random() * statuses.length)];
-};
+const API_URL = "http://localhost:7000";
 
 export default function ManagerDashboardPage() {
-  const { user, token, staff: staffFromHook, isLoading } = useAuth();
-  const [staff, setStaff] = useState([]);
-  const [chartData, setChartData] = useState({ labels: [], datasets: [] });
+  const [staffs, setStaffs] = useState([]);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const getRandomStatus = () => {
+    const list = ["En attente", "En cours", "Envoyée"];
+    return list[Math.floor(Math.random() * list.length)];
+  };
 
   useEffect(() => {
-    if (!user || isLoading) return;
+    const storedUser = localStorage.getItem("user");
+    const token = localStorage.getItem("token");
 
-    const fetchStaffForHRorAdmin = async () => {
-      try {
-        const res = await fetch("https://backendeva.onrender.com/staff", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        const enhanced = data.map((s) => ({
-          ...s,
-          statutEvaluation: getRandomStatus(),
-        }));
-        setStaff(enhanced);
-        updateChartData(enhanced);
-      } catch (err) {
-        console.error("Erreur chargement staff (RH/Admin):", err);
-      }
-    };
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
 
-    // Si Manager, on utilise le hook (déjà filtré)
-    if (user.role === "Manager") {
-      const enhanced = staffFromHook.map((s) => ({
-        ...s,
-        statutEvaluation: getRandomStatus(),
-      }));
-      setStaff(enhanced);
-      updateChartData(enhanced);
-    } else {
-      fetchStaffForHRorAdmin();
-    }
-  }, [user, token, staffFromHook, isLoading]);
+      const fetchStaff = async () => {
+        try {
+          const res = await fetch(`${API_URL}/staff/manager`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
 
-  const updateChartData = (staffArray) => {
-    const counts = staffArray.reduce((acc, s) => {
-      acc[s.typeContrat] = (acc[s.typeContrat] || 0) + 1;
-      return acc;
-    }, {});
-    setChartData({
-      labels: Object.keys(counts),
-      datasets: [
-        {
-          label: "Nombre d'agents",
-          data: Object.values(counts),
-          backgroundColor: "#1976d2",
-        },
-      ],
-    });
-  };
-
-  const isExpiringSoon = (dateStr) => {
-    if (!dateStr) return false;
-    const now = new Date();
-    const date = new Date(dateStr);
-    const diff = (date - now) / (1000 * 60 * 60 * 24);
-    return diff >= 0 && diff <= 7;
-  };
-
-  const expiringStaff = staff.filter((s) => isExpiringSoon(s.dateFinContrat));
-  const evalEnAttente = staff.filter((s) => s.statutEvaluation === "En attente");
-  const evalEnvoyees = staff.filter((s) => s.statutEvaluation === "Envoyée");
-
-  const columns = [
-    { field: "nom", headerName: "Nom", flex: 1 },
-    { field: "prenom", headerName: "Prénom", flex: 1 },
-    { field: "emploi", headerName: "Emploi", flex: 1 },
-    { field: "departement", headerName: "Département", flex: 1 },
-    {
-      field: "dateFinContrat",
-      headerName: "Fin de contrat",
-      flex: 1,
-      valueFormatter: ({ value }) =>
-        value ? new Date(value).toLocaleDateString() : "—",
-    },
-    {
-      field: "statutEvaluation",
-      headerName: "Évaluation",
-      flex: 1,
-      renderCell: (params) => (
-        <Chip
-          label={params.value}
-          color={
-            params.value === "Envoyée"
-              ? "success"
-              : params.value === "En attente"
-              ? "warning"
-              : "info"
+          if (!res.ok) {
+            throw new Error("Erreur de récupération du staff");
           }
-        />
-      ),
-    },
-  ];
+
+          const data = await res.json();
+
+          const enriched = Array.isArray(data)
+            ? data.map((s) => ({
+                ...s,
+                statutEvaluation: getRandomStatus()
+              }))
+            : [];
+
+          setStaffs(enriched);
+        } catch (err) {
+          console.error("Erreur chargement staff :", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchStaff();
+    } else {
+      setLoading(false);
+    }
+  }, []);
+
+  if (loading) {
+    return (
+      <Box minHeight="80vh" display="flex" justifyContent="center" alignItems="center">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  const contractsExpiringSoon = staffs.filter((s) => {
+    if (!s.dateFinContrat) return false;
+    const fin = new Date(s.dateFinContrat);
+    const diff = (fin - new Date()) / (1000 * 60 * 60 * 24); // jours
+    return diff <= 30 && diff >= 0;
+  });
+
+  const evaluationsEnAttente = staffs.filter((s) => s.statutEvaluation === "En attente");
+  const evaluationsEnvoyees = staffs.filter((s) => s.statutEvaluation === "Envoyée");
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h4" gutterBottom fontWeight="bold">
-        Tableau de bord {user?.role === "Manager" ? "Manager" : "RH / admin"}
-      </Typography>
+      {/* Profil utilisateur */}
+      <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
+        <Stack direction="row" spacing={2} alignItems="center">
+          <Avatar sx={{ bgcolor: "#1976d2" }}>
+            <PersonIcon />
+          </Avatar>
+          <Box>
+            <Typography variant="h6" fontWeight="bold">
+              Bonjour, {user?.nom}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Manager – Département {user?.departement}
+            </Typography>
+          </Box>
+        </Stack>
+      </Paper>
 
-      {/* Résumé */}
-      <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap" mb={3}>
-        <StatCard title="Total collaborateurs" value={staff.length} />
-        <StatCard
-          title="Contrats expirant sous 7j"
-          value={expiringStaff.length}
-        />
-        <StatCard title="Évaluations à remplir" value={evalEnAttente.length} />
-        <StatCard title="Évaluations envoyées" value={evalEnvoyees.length} />
-      </Stack>
+      {/* Statistiques */}
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={4}>
+          <StatCard title="Collaborateurs" value={staffs.length} />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <StatCard title="Évaluations en attente" value={evaluationsEnAttente.length} />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <StatCard title="Évaluations envoyées" value={evaluationsEnvoyees.length} />
+        </Grid>
+      </Grid>
 
-      {/* Graphique */}
-      <Box my={4}>
+      {/* Contrats expirants */}
+      <Box mt={6}>
         <Typography variant="h6" gutterBottom>
-          Répartition par type de contrat
+          📅 Contrats expirant sous 30 jours
         </Typography>
-        <Paper elevation={2} sx={{ p: 2 }}>
-          <Bar data={chartData} />
+        <Paper elevation={3}>
+          <List>
+            {contractsExpiringSoon.length === 0 && (
+              <ListItem>
+                <ListItemText primary="Aucun contrat proche de l’échéance" />
+              </ListItem>
+            )}
+            {contractsExpiringSoon.map((s) => (
+              <ListItem key={s._id} divider>
+                <ListItemText
+                  primary={`${s.nom} ${s.prenom} – ${s.poste}`}
+                  secondary={`Fin : ${new Date(s.dateFinContrat).toLocaleDateString("fr-FR")}`}
+                />
+                <Button variant="outlined" size="small" href={`/with-sidebar/evaluation?staffId=${s._id}`}>
+                  Évaluer
+                </Button>
+              </ListItem>
+            ))}
+          </List>
         </Paper>
       </Box>
 
       {/* Liste des collaborateurs */}
-      <Box my={4}>
+      <Box mt={6}>
         <Typography variant="h6" gutterBottom>
-          Équipe sous votre responsabilité
+          👥 Équipe à évaluer
         </Typography>
-        <Paper elevation={2} sx={{ height: 500 }}>
-          <DataGrid
-            rows={staff}
-            columns={columns}
-            getRowId={(row) => row._id}
-            pageSize={10}
-            disableRowSelectionOnClick
-          />
+        <Paper elevation={2}>
+          <List>
+            {staffs.map((s) => (
+              <ListItem key={s._id} divider>
+                <ListItemText
+                  primary={`${s.nom} ${s.prenom} – ${s.poste}`}
+                  secondary={`Département : ${s.departement}`}
+                />
+                <Typography
+                  variant="caption"
+                  sx={{
+                    px: 2,
+                    py: 0.5,
+                    borderRadius: 2,
+                    color: "#fff",
+                    bgcolor:
+                      s.statutEvaluation === "En attente"
+                        ? "orange"
+                        : s.statutEvaluation === "En cours"
+                        ? "blue"
+                        : "green"
+                  }}
+                >
+                  {s.statutEvaluation}
+                </Typography>
+              </ListItem>
+            ))}
+          </List>
         </Paper>
-      </Box>
-
-      {/* Accès rapide */}
-      <Box mt={4} display="flex" flexWrap="wrap" gap={2}>
-        <Button
-          variant="contained"
-          color="primary"
-          href="/with-sidebar/evaluation"
-        >
-          ➕ Remplir une évaluation
-        </Button>
-        <Button variant="outlined" color="secondary" href="/with-sidebar/staff">
-          👥 Gérer mon équipe
-        </Button>
-        <Button variant="outlined" href="/with-sidebar/historique">
-          📄 Historique des évaluations
-        </Button>
       </Box>
     </Container>
   );
@@ -192,11 +188,11 @@ export default function ManagerDashboardPage() {
 
 function StatCard({ title, value }) {
   return (
-    <Paper elevation={3} sx={{ p: 2, minWidth: 220 }}>
-      <Typography variant="subtitle2" color="textSecondary">
+    <Paper elevation={3} sx={{ p: 3, textAlign: "center" }}>
+      <Typography variant="subtitle2" color="text.secondary">
         {title}
       </Typography>
-      <Typography variant="h5" fontWeight="bold">
+      <Typography variant="h4" fontWeight="bold" color="primary" mt={1}>
         {value}
       </Typography>
     </Paper>
