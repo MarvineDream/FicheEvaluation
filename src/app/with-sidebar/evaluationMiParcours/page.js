@@ -1,5 +1,5 @@
-import EvaluationMiParcours from "@/components/evaluationMiParcours";
+import EvaluationStepper from "@/components/EvaluationStepper";
 
 export default function Page() {
-  return <EvaluationMiParcours />;
+  return <EvaluationStepper />;
 }

@@ -52,12 +52,15 @@ export default function EvaluationPage() {
   });
 
 
-  const [objectifs, setObjectifs] = useState([{ activite: "", periode: "", pourcentage: 0, sousTaches: [] }]);
+  const [objectifs, setObjectifs] = useState([
+    { activite: "", periode: "", pourcentage: 0, sousTaches: [] }
+  ]);
+
   const [integration, setIntegration] = useState([
-    { critere: "AdaptationPoste", note: "", commentaire: "" },
-    { critere: "AdaptationEquipe", note: "", commentaire: "" },
-    { critere: "RespectDesProcedures", note: "", commentaire: "" },
-    { critere: "MaitriseDesOutils", note: "", commentaire: "" },
+    { critere: "Adaptation au Poste", note: "", commentaire: "" },
+    { critere: "Adaptation Equipe", note: "", commentaire: "" },
+    { critere: "Respect Des Procedures", note: "", commentaire: "" },
+    { critere: "Maitrise des Outils", note: "", commentaire: "" },
   ]);
 
   const [competences, setCompetences] = useState({

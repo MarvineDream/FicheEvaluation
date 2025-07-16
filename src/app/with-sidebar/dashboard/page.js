@@ -1,28 +1,20 @@
-"use client";
+'use client';
 
 import { useEffect, useState } from "react";
 import {
-  Container,
-  Typography,
-  Paper,
-  Stack,
-  Box,
-  CircularProgress,
-  Avatar,
-  Alert,
-  Grid,
-  TextField,
-  Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  List,
-  ListItem,
-  ListItemText
+  Container, Typography, Paper, Stack, Box,
+  CircularProgress, Avatar, Alert, Grid,
+  TextField, Button, FormControl, InputLabel,
+  Select, MenuItem, List, ListItem, ListItemText,
+  useMediaQuery
 } from "@mui/material";
-import PersonIcon from "@mui/icons-material/Person";
-import { Bar, Line, Pie } from "react-chartjs-2";
+import { useTheme } from '@mui/material/styles';
+
+import {
+  User, UsersRound, TrendingUp,
+  BarChart3, LineChart, PieChart
+} from "lucide-react";
+
 import {
   Chart as ChartJS,
   BarElement,
@@ -34,6 +26,8 @@ import {
   LineElement,
   ArcElement
 } from "chart.js";
+
+import { Bar, Line, Pie } from "react-chartjs-2";
 
 ChartJS.register(
   CategoryScale,
@@ -56,9 +50,16 @@ export default function DashboardRHAdmin() {
     role: "",
     departement: ""
   });
+
+  const [data, setData] = useState([]);
+  const [departements, setDepartements] = useState([]);
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [staffEvolutionData, setStaffEvolutionData] = useState([]);
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
     const stored = localStorage.getItem("user");
@@ -66,10 +67,29 @@ export default function DashboardRHAdmin() {
     fetchStats();
   }, []);
 
+
+  useEffect(() => {
+    const fetchDepartements = async () => {
+      try {
+        const token = JSON.parse(localStorage.getItem("user"))?.token;
+        const res = await fetch("https://backendeva.onrender.com/departement", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        setDepartements(data);
+      } catch (error) {
+        console.error("Erreur lors du chargement des départements :", error);
+      }
+    };
+
+    fetchDepartements();
+  }, []);
+
+
   const fetchStats = async () => {
     try {
       const token = JSON.parse(localStorage.getItem("user"))?.token;
-      const res = await fetch("http://localhost:7000/staff/stats", {
+      const res = await fetch("https://backendeva.onrender.com/staff/stats", {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -91,7 +111,7 @@ export default function DashboardRHAdmin() {
 
     try {
       const token = JSON.parse(localStorage.getItem("user"))?.token;
-      const res = await fetch("http://localhost:7000/auth/register", {
+      const res = await fetch("https://backendeva.onrender.com/auth/creer", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -114,6 +134,43 @@ export default function DashboardRHAdmin() {
     }
   };
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('https://backendeva.onrender.com/staff/evolution', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+
+        // Adapter les données pour Chart.js
+        const labels = data?.map((item) => item.mois) || [];
+        const values = data?.map((item) => item.total) || [];
+
+
+        setStaffEvolutionData({
+          labels,
+          datasets: [
+            {
+              label: 'Nombre de personnels',
+              data: values,
+              fill: false,
+              borderColor: 'rgb(34,197,94)',
+              tension: 0.3,
+            },
+          ],
+        });
+      } catch (error) {
+        console.error('Erreur chargement staff evolution :', error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   if (!user || !stats) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
@@ -122,53 +179,53 @@ export default function DashboardRHAdmin() {
     );
   }
 
-  // Graphiques
   const contractTypeData = {
     labels: stats.parTypeContrat?.map((t) => t.type) || [],
+    datasets: [{
+      label: "Type de contrat",
+      data: stats.parTypeContrat?.map((t) => t.count) || [],
+      backgroundColor: ["#4CAF50", "#81C784", "#A5D6A7"],
+      borderRadius: 6
+    }]
+  };
+
+  const staffEvolutionChartData = {
+    labels: staffEvolutionData.labels || [],
     datasets: [
       {
-        label: "Type de contrat",
-        data: stats.parTypeContrat?.map((t) => t.count) || [],
-        backgroundColor: ["#1976d2", "#9c27b0", "#ff9800"]
-      }
-    ]
+        label: "Évolution du personnel",
+        data: staffEvolutionData.datasets?.length > 0
+          ? staffEvolutionData.datasets[0].data
+          : [],
+        borderColor: "#2E7D32",
+        backgroundColor: "rgba(46,125,50,0.3)",
+        fill: true,
+        tension: 0.4,
+      },
+    ],
   };
+
 
   const contractStatusData = {
     labels: ["Actifs", "Expirés", "Renouvelés"],
-    datasets: [
-      {
-        label: "Contrats",
-        data: [
-          stats.contratsActifs ?? 0,
-          stats.contratsExpirés ?? 0,
-          stats.contratsRenouvelés ?? 0
-        ],
-        backgroundColor: ["#4caf50", "#f44336", "#ffeb3b"]
-      }
-    ]
-  };
-
-  const staffEvolutionData = {
-    labels: stats.evolutionStaff?.map((e) => e.mois) || [],
-    datasets: [
-      {
-        label: "Évolution",
-        data: stats.evolutionStaff?.map((e) => e.count) || [],
-        borderColor: "#1976d2",
-        backgroundColor: "rgba(25,118,210,0.4)",
-        fill: true
-      }
-    ]
+    datasets: [{
+      label: "Contrats",
+      data: [
+        stats.contratsActifs ?? 0,
+        stats.contratsExpirés ?? 0,
+        stats.contratsRenouvelés ?? 0
+      ],
+      backgroundColor: ["#66BB6A", "#EF5350", "#FFCA28"],
+      borderWidth: 1
+    }]
   };
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* Header */}
       <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
         <Stack direction="row" spacing={2} alignItems="center">
-          <Avatar sx={{ bgcolor: "#1976d2" }}>
-            <PersonIcon />
+          <Avatar sx={{ bgcolor: "#2E7D32" }}>
+            <User />
           </Avatar>
           <Box>
             <Typography variant="h6" fontWeight="bold">
@@ -179,45 +236,66 @@ export default function DashboardRHAdmin() {
         </Stack>
       </Paper>
 
-      {/* Statistiques principales */}
       <Grid container spacing={3}>
         <Grid item xs={12} md={4}>
-          <StatCard title="Total du personnel" value={stats.totalStaff} />
+          <StatCard title="Total du personnel" value={stats.totalStaff} Icon={UsersRound} />
         </Grid>
         <Grid item xs={12} md={4}>
-          <StatCard title="Nouveaux employés" value={stats.nouveauxEmployes} />
+          <StatCard title="Nouveaux employés" value={stats.nouveauxEmployes} Icon={User} />
         </Grid>
         <Grid item xs={12} md={4}>
-          <StatCard title="Départs récents" value={stats.departRecents} />
+          <StatCard title="Départs récents" value={stats.departRecents} Icon={TrendingUp} />
         </Grid>
       </Grid>
 
-      {/* Graphiques */}
       <Box mt={6}>
-        <Typography variant="h6">📊 Répartition par type de contrat</Typography>
+        <Typography variant="h6" className="flex items-center gap-2">
+          <BarChart3 className="text-green-600" /> Répartition par type de contrat
+        </Typography>
         <Paper sx={{ p: 3, mt: 2 }}>
-          <Bar data={contractTypeData} />
+          <Bar data={contractTypeData} options={{ responsive: true, maintainAspectRatio: !isMobile }} />
         </Paper>
       </Box>
 
       <Box mt={6}>
-        <Typography variant="h6">📈 Évolution du personnel</Typography>
+        <Typography variant="h6" className="flex items-center gap-2">
+          <LineChart className="text-green-600" /> Évolution du personnel
+        </Typography>
+
         <Paper sx={{ p: 3, mt: 2 }}>
-          <Line data={staffEvolutionData} />
+          {staffEvolutionData?.labels?.length > 0 ? (
+            <Line
+              data={staffEvolutionChartData}
+              options={{
+                responsive: true,
+                maintainAspectRatio: !isMobile,
+                plugins: {
+                  legend: { position: 'top' },
+                  title: { display: true, text: 'Personnel par mois' },
+                },
+                scales: {
+                  x: {
+                    title: { display: true, text: 'Mois' },
+                  },
+                  y: {
+                    title: { display: true, text: 'Effectif' },
+                    beginAtZero: true,
+                  },
+                },
+              }}
+            />
+          ) : (
+            <Typography>Chargement des données...</Typography>
+          )}
         </Paper>
+
       </Box>
 
-      <Box mt={6}>
-        <Typography variant="h6">📌 Statut des contrats</Typography>
-        <Paper sx={{ p: 3, mt: 2 }}>
-          <Pie data={contractStatusData} />
-        </Paper>
-      </Box>
 
-      {/* Détail par département */}
+
       <Box mt={6}>
         <Typography variant="h6">🧾 Répartition par département</Typography>
-        <Paper elevation={2} sx={{ mt: 2 }}>
+        <Paper sx={{ mt: 2 }}>
           <List>
             {stats.parDepartement?.map((dep) => (
               <ListItem key={dep.nom} divider>
@@ -229,31 +307,31 @@ export default function DashboardRHAdmin() {
         </Paper>
       </Box>
 
-      {/* Formulaire de création de compte */}
-      {(user.role === "admin" || user.role === "RH") && (
+      {user.role === "RH" && (
         <Box mt={6}>
           <Typography variant="h6" gutterBottom>
             ➕ Créer un nouvel utilisateur
           </Typography>
-          {successMsg && <Alert severity="success">{successMsg}</Alert>}
-          {errorMsg && <Alert severity="error">{errorMsg}</Alert>}
+          {successMsg && <Alert severity="success" sx={{ mb: 2 }}>{successMsg}</Alert>}
+          {errorMsg && <Alert severity="error" sx={{ mb: 2 }}>{errorMsg}</Alert>}
 
-          <Paper elevation={3} sx={{ p: 3, mt: 2 }}>
+          <Paper sx={{ p: 3, mt: 2 }}>
             <form onSubmit={handleCreateUser}>
               <Grid container spacing={2}>
-                {["nom", "email", "password",].map((field) => (
+                {["nom", "email", "password"].map((field) => (
                   <Grid item xs={12} md={4} key={field}>
                     <TextField
                       label={field.charAt(0).toUpperCase() + field.slice(1)}
                       name={field}
+                      type={field === "password" ? "password" : "text"}
                       value={form[field]}
                       onChange={handleInputChange}
                       fullWidth
                       required
-                      type={field === "password" ? "password" : "text"}
                     />
                   </Grid>
                 ))}
+
                 <Grid item xs={12} md={4}>
                   <FormControl fullWidth required>
                     <InputLabel>Rôle</InputLabel>
@@ -268,16 +346,24 @@ export default function DashboardRHAdmin() {
                     </Select>
                   </FormControl>
                 </Grid>
-                {(form.role === "RH" || form.role === "Manager") && (
+
+                {form.role === "Manager" && (
                   <Grid item xs={12} md={4}>
-                    <TextField
-                      label="Département"
-                      name="departement"
-                      value={form.departement}
-                      onChange={handleInputChange}
-                      fullWidth
-                      required
-                    />
+                    <FormControl fullWidth required>
+                      <InputLabel>Département</InputLabel>
+                      <Select
+                        name="departement"
+                        value={form.departement}
+                        onChange={handleInputChange}
+                        label="Département"
+                      >
+                        {Array.isArray(departements) && departements.map((dep) => (
+                          <MenuItem key={dep._id} value={dep._id}>
+                            {dep.name || dep.nom}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
                   </Grid>
                 )}
               </Grid>
@@ -294,13 +380,18 @@ export default function DashboardRHAdmin() {
           </Paper>
         </Box>
       )}
+
+
     </Container>
   );
 }
 
-function StatCard({ title, value }) {
+function StatCard({ title, value, Icon }) {
   return (
-    <Paper elevation={3} sx={{ p: 3, textAlign: "center" }}>
+    <Paper elevation={3} sx={{ p: 3, textAlign: "center", borderRadius: 3 }}>
+      <Box display="flex" justifyContent="center" mb={1}>
+        <Icon size={30} className="text-green-600" />
+      </Box>
       <Typography variant="subtitle1" color="textSecondary">
         {title}
       </Typography>

@@ -1,6 +1,5 @@
 "use client";
 
-
 import {
   Box,
   Typography,
@@ -10,21 +9,37 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  Button
-} from '@mui/material';
+  Button,
+} from "@mui/material";
 
 const optionsDecision = [
-  'Poursuite dans les fonctions actuelles',
-  'Accompagnement spécifique',
-  'Changement de poste souhaitable',
-  'Autre (à préciser)'
+  "Poursuite dans les fonctions actuelles",
+  "Accompagnement spécifique",
+  "Changement de poste souhaitable",
+  "Autre (à préciser)",
 ];
 
-const FinalisationForm = ({ value, onSubmit }) => {
+const FinalisationForm = ({
+  value = {},
+  onSubmit,
+  onChange,
+  staffName = "",     
+  managerName = "",   
+}) => {
   const handleChange = (section, field, val) => {
-    const updated = { ...value };
-    updated[section][field] = val;
-    // Note : Pas de onChange ici, ce composant déclenche le submit final
+    const updatedSection = {
+      ...(typeof value[section] === "object" && value[section] !== null
+        ? value[section]
+        : {}),
+      [field]: val,
+    };
+
+    const updated = {
+      ...value,
+      [section]: updatedSection,
+    };
+
+    if (onChange) onChange(updated);
   };
 
   return (
@@ -38,24 +53,31 @@ const FinalisationForm = ({ value, onSubmit }) => {
           <FormControl fullWidth>
             <InputLabel>Décision RH</InputLabel>
             <Select
-              value={value.decision?.choix || ''}
-              onChange={(e) => handleChange('decision', 'choix', e.target.value)}
               label="Décision RH"
+              value={value.decision?.choix || ""}
+              onChange={(e) =>
+                handleChange("decision", "choix", e.target.value)
+              }
             >
               {optionsDecision.map((opt) => (
-                <MenuItem key={opt} value={opt}>{opt}</MenuItem>
+                <MenuItem key={opt} value={opt}>
+                  {opt}
+                </MenuItem>
               ))}
             </Select>
           </FormControl>
         </Grid>
+
         <Grid item xs={12}>
           <TextField
             label="Commentaire RH"
             multiline
             minRows={3}
             fullWidth
-            value={value.decision?.commentaire || ''}
-            onChange={(e) => handleChange('decision', 'commentaire', e.target.value)}
+            value={value.decision?.commentaire || ""}
+            onChange={(e) =>
+              handleChange("decision", "commentaire", e.target.value)
+            }
           />
         </Grid>
 
@@ -64,29 +86,31 @@ const FinalisationForm = ({ value, onSubmit }) => {
           <TextField
             label="Nom du collaborateur"
             fullWidth
-            value={value.signatures?.collaborateur || ''}
-            onChange={(e) => handleChange('signatures', 'collaborateur', e.target.value)}
+            value={staffName}
+            InputProps={{ readOnly: true }}
           />
         </Grid>
         <Grid item xs={12} sm={4}>
           <TextField
             label="Nom du manager"
             fullWidth
-            value={value.signatures?.responsableNom || ''}
-            onChange={(e) => handleChange('signatures', 'responsableNom', e.target.value)}
+            value={managerName}
+            InputProps={{ readOnly: true }}
           />
         </Grid>
         <Grid item xs={12} sm={4}>
           <TextField
             label="Nom RH"
             fullWidth
-            value={value.signatures?.rhNom || ''}
-            onChange={(e) => handleChange('signatures', 'rhNom', e.target.value)}
+            value={value.signatures?.rhNom || ""}
+            onChange={(e) =>
+              handleChange("signatures", "rhNom", e.target.value)
+            }
           />
         </Grid>
       </Grid>
 
-      <Box sx={{ textAlign: 'right', mt: 4 }}>
+      <Box sx={{ textAlign: "right", mt: 4 }}>
         <Button variant="contained" color="success" onClick={onSubmit}>
           Soumettre l&apos;évaluation finale
         </Button>

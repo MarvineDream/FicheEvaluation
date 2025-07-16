@@ -1,1 +1,13 @@
 @import "tailwindcss";
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .MuiPaper-root, .MuiPaper-root * {
+    visibility: visible;
+  }
+  .MuiContainer-root {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}

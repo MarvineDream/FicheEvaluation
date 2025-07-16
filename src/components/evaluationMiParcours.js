@@ -60,7 +60,7 @@ export default function EvaluationMiParcours() {
 
   const handleSubmit = async () => {
     try {
-      const res = await fetch('/api/evaluation-mi-parcours', {
+      const res = await fetch('/evaluation-mi-parcours', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)

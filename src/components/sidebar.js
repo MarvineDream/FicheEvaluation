@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Drawer,
   List,
@@ -46,7 +47,20 @@ export default function Sidebar() {
     >
       <Box>
         <Toolbar />
-        <Box sx={{ px: 2, pb: 1 }}>
+
+        {/* Logo Bamboo */}
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 1, width: '100%' }}>
+          <Image 
+            src="/logo-bamboo.svg" 
+            alt="Logo Bamboo" 
+            width={240} 
+            height={80} 
+            style={{ width: '80%', height: 'auto' }} 
+            priority
+          />
+        </Box>
+
+        <Box sx={{ px: 2, pb: 1, mt: 2 }}>
           <Typography variant="subtitle2" color="text.secondary">
             Connecté en tant que :
           </Typography>
@@ -63,7 +77,7 @@ export default function Sidebar() {
               <ListItemIcon>
                 <DashboardIcon />
               </ListItemIcon>
-              <ListItemText primary="Dashboard RH" />
+              <ListItemText primary="Tableau de bord Responsable RH" />
             </ListItemButton>
           )}
 
@@ -72,23 +86,33 @@ export default function Sidebar() {
               <ListItemIcon>
                 <DashboardIcon />
               </ListItemIcon>
-              <ListItemText primary="Dashboard Manager" />
+              <ListItemText primary="Tableau de bord Manager" />
+            </ListItemButton>
+          )}
+          {(user.role === "RH" || user.role === "admin") && (
+            <ListItemButton component={Link} href="/with-sidebar/departement">
+              <ListItemIcon>
+                <AssessmentIcon />
+              </ListItemIcon>
+              <ListItemText primary="Departement" />
             </ListItemButton>
           )}
 
           <ListItemButton component={Link} href="/with-sidebar/staff">
-            <ListItemIcon>
-              <PeopleIcon />
-            </ListItemIcon>
-            <ListItemText primary="Gestion du staff" />
-          </ListItemButton>
+  <ListItemIcon>
+    <PeopleIcon />
+  </ListItemIcon>
+  <ListItemText
+    primary={
+      user.role === "Manager"
+        ? "Équipe et évaluation"
+        : "Gestion du personnel et évaluation"
+    }
+  />
+</ListItemButton>
 
-          <ListItemButton component={Link} href="/with-sidebar/evaluation">
-            <ListItemIcon>
-              <AssessmentIcon />
-            </ListItemIcon>
-            <ListItemText primary="Fiche d'évaluation" />
-          </ListItemButton>
+
+          
         </List>
       </Box>
 
@@ -106,16 +130,19 @@ export default function Sidebar() {
     </Box>
   );
 
+
+  
+
   return (
     <>
-      {/* Menu burger tout en haut (mobile uniquement) */}
+      {/* Menu burger pour mobile */} 
       {isMobile && (
         <Box
           sx={{
             position: "fixed",
             top: 0,
             left: 0,
-            zIndex: 1201, // Juste au-dessus du Drawer
+            zIndex: 1201,
             backgroundColor: "#fff",
             width: "100%",
             boxShadow: 1,
@@ -132,7 +159,7 @@ export default function Sidebar() {
         </Box>
       )}
 
-      {/* Drawer pour mobile (temporaire) */}
+      {/* Drawer mobile */} 
       <Drawer
         variant="temporary"
         open={mobileOpen}
@@ -150,7 +177,7 @@ export default function Sidebar() {
         {drawerContent}
       </Drawer>
 
-      {/* Drawer permanent pour desktop */}
+      {/* Drawer desktop */} 
       <Drawer
         variant="permanent"
         sx={{

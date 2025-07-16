@@ -1,8 +1,7 @@
-"use client";
+'use client';
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CircularProgress } from "@mui/material";
 import {
   Container,
   TextField,
@@ -11,8 +10,10 @@ import {
   Box,
   Paper,
   Alert,
+  CircularProgress,
   Link
 } from "@mui/material";
+import Image from "next/image";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -38,13 +39,11 @@ export default function LoginPage() {
         throw new Error(message || "Erreur de connexion");
       }
 
-      const data = await res.json();
-      const { token, user } = data;
-
+      const { token, user } = await res.json();
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("role", user.role);
 
-      // 🔁 Redirection en fonction du rôle
       switch (user.role) {
         case "admin":
         case "RH":
@@ -59,60 +58,92 @@ export default function LoginPage() {
     } catch (err) {
       setError(err.message);
     } finally {
-      setLoading(false); // ⛔ Désactive le chargement dans tous les cas
+      setLoading(false);
     }
   };
 
   return (
-    <Container maxWidth="xs">
-      <Paper elevation={3} sx={{ p: 4, mt: 8 }}>
-        <Typography variant="h5" fontWeight="bold" align="center" mb={3}>
-          Connexion
-        </Typography>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        backgroundImage: `url('/istockphoto-931429246-612x612.jpg')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        p: 2,
+      }}
+    >
+      <Container maxWidth="xs">
+        <Paper
+          elevation={6}
+          sx={{
+            p: 4,
+            borderRadius: 3,
+            backdropFilter: "blur(10px)",
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            border: '1px solid #2e7d32',
+          }}
+        >
+          <Box mb={2} textAlign="center">
+            <Image
+              src="/logo-bamboo.svg"
+              alt="Logo Bamboo"
+              width={80}
+              height={80}
+            />
+          </Box>
 
-        {error && <Alert severity="error">{error}</Alert>}
-
-        <Box component="form" onSubmit={handleLogin} noValidate sx={{ mt: 2 }}>
-          <TextField
-            label="Email"
-            type="email"
-            value={email}
-            fullWidth
-            margin="normal"
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <TextField
-            label="Mot de passe"
-            type="password"
-            value={password}
-            fullWidth
-            margin="normal"
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <Button
-            type="submit"
-            variant="contained"
-            fullWidth
-            sx={{ mt: 3 }}
-            disabled={loading} // Désactive le bouton pendant le chargement
+          <Typography
+            variant="h5"
+            fontWeight="bold"
+            align="center"
+            mb={2}
+            sx={{ color: "#2e7d32" }}
           >
-            {loading ? <CircularProgress size={24} color="inherit" /> : "Se connecter"}
-          </Button>
-        </Box>
+            Connexion
+          </Typography>
 
-        <Typography align="center" mt={3}>
-          Pas encore de compte ?{" "}
-          <Link
-            href="/register"
-            underline="hover"
-            sx={{ fontWeight: "bold", cursor: "pointer" }}
-          >
-            S’inscrire
-          </Link>
-        </Typography>
-      </Paper>
-    </Container>
+          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+
+          <Box component="form" onSubmit={handleLogin}>
+            <TextField
+              label="Email"
+              type="email"
+              value={email}
+              fullWidth
+              margin="normal"
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <TextField
+              label="Mot de passe"
+              type="password"
+              value={password}
+              fullWidth
+              margin="normal"
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              sx={{
+                mt: 2,
+                backgroundColor: '#2e7d32',
+                '&:hover': {
+                  backgroundColor: '#1b5e20',
+                },
+              }}
+              disabled={loading}
+            >
+              {loading ? <CircularProgress size={24} sx={{ color: "#ffffff" }} /> : "Se connecter"}
+            </Button>
+          </Box>
+        </Paper>
+      </Container>
+    </Box>
   );
 }

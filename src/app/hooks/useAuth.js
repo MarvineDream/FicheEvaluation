@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+
 export default function useAuth({ redirectTo = "/login" } = {}) {
   const router = useRouter();
   const [user, setUser] = useState(null);
