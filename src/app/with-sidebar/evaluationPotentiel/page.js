@@ -80,7 +80,7 @@ export default function EvaluationPotentielPage() {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      const response = await fetch('https://backendeva.onrender.com/Evaluation', {
+      const response = await fetch('https://backendeva.onrender.com/Evaluation/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
