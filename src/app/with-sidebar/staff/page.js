@@ -48,7 +48,7 @@ const PersonnelPage = () => {
     if (!token) return;
     const fetchDepartments = async () => {
       try {
-        const res = await fetch('https://backendeva.onrender.com/departement', {
+        const res = await fetch('http://localhost:7000/departement', {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -65,9 +65,9 @@ const PersonnelPage = () => {
     const fetchEmployees = async () => {
       let url = '';
       if (user.role === "Manager") {
-        url = 'https://backendeva.onrender.com/staff/manager';
+        url = 'http://localhost:7000/staff/manager';
       } else if (user.role === "RH") {
-        url = 'https://backendeva.onrender.com/staff/All';
+        url = 'http://localhost:7000/staff/All';
       } else {
         return;
       }
@@ -126,7 +126,7 @@ const PersonnelPage = () => {
 
   const onSubmitUpdate = async (data) => {
     try {
-      const res = await fetch(`https://backendeva.onrender.com/staff/${selectedEmployee._id}`, {
+      const res = await fetch(`http://localhost:7000/staff/${selectedEmployee._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -150,7 +150,7 @@ const PersonnelPage = () => {
     const confirmed = confirm("Supprimer cet employé ?");
     if (!confirmed || !token) return;
     try {
-      const res = await fetch(`https://backendeva.onrender.com/staff/${id}`, {
+      const res = await fetch(`http://localhost:7000/staff/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -215,7 +215,7 @@ const PersonnelPage = () => {
     };
 
     try {
-      const res = await fetch("https://backendeva.onrender.com/staff", {
+      const res = await fetch("http://localhost:7000/staff", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

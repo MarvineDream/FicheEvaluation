@@ -28,7 +28,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("https://backendeva.onrender.com/auth/login", {
+      const res = await fetch("http://localhost:7000/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),

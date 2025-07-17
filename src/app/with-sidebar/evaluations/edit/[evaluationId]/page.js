@@ -25,7 +25,7 @@ const EvaluationEditPage = () => {
           router.push("/login");
           return;
         }
-        const res = await fetch(`https://backendeva.onrender.com/Evaluation/${evaluationId}`, {
+        const res = await fetch(`http://localhost:7000/Evaluation/${evaluationId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) throw new Error("Impossible de récupérer l'évaluation");
@@ -57,7 +57,7 @@ const EvaluationEditPage = () => {
         lastStep: step, // 🔁 très important : on envoie l’étape courante !
       };
 
-      const res = await fetch(`https://backendeva.onrender.com/Evaluation/${evaluationId}`, {
+      const res = await fetch(`http://localhost:7000/Evaluation/${evaluationId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

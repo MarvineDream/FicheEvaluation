@@ -6,7 +6,7 @@ import { Typography, Box, Grid, Paper, Button } from '@mui/material';
 import PeopleIcon from '@mui/icons-material/People';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
-const API_BASE = 'https://backendeva.onrender.com';
+const API_BASE = 'http://localhost:7000';
 
 export default function DepartmentTeamPage() {
   const { id } = useParams();

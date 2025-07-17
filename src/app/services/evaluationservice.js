@@ -12,7 +12,7 @@ const API_URL = "http://localhost:7000/Evaluation";
  */
 export const updateOrCreateEvaluation = async ({ staffId, managerId, dateEvaluation, data, isFinal, lastStep, token }) => {
   try {
-    const response = await fetch("https://backendeva.onrender.com/evaluation/save", {
+    const response = await fetch("http://localhost:7000/evaluation/save", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,

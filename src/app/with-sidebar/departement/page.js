@@ -11,7 +11,7 @@ import {
   TextField, Select, MenuItem, InputLabel, FormControl, IconButton, Box
 } from '@mui/material';
 
-const API_BASE = 'https://backendeva.onrender.com';
+const API_BASE = 'http://localhost:7000';
 
 export default function DepartmentsPage() {
   const [departments, setDepartments] = useState([]);

@@ -20,6 +20,8 @@ const EvaluationsPage = () => {
   const [evaluationInProgress, setEvaluationInProgress] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [evaluationsPotentiel, setEvaluationsPotentiel] = useState([]);
+
 
   const dateEvaluation = new Date().toISOString().split("T")[0];
 
@@ -48,7 +50,7 @@ const EvaluationsPage = () => {
           return;
         }
 
-        const res = await fetch(`https://backendeva.onrender.com/staff/${id}`, {
+        const res = await fetch(`http://localhost:7000/staff/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -66,6 +68,30 @@ const EvaluationsPage = () => {
   useEffect(() => {
     if (!id) return;
 
+    const fetchEvaluationsPotentiel = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`http://localhost:7000/Evaluation/staff/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) throw new Error("Erreur fetch potentiel");
+
+        const data = await res.json();
+        setEvaluationsPotentiel(data);
+      } catch (err) {
+        console.error("Erreur récupération évaluations potentiel :", err);
+      }
+    };
+
+    fetchEvaluationsPotentiel();
+  }, [id]);
+
+
+
+  useEffect(() => {
+    if (!id) return;
+
     const fetchEvaluations = async () => {
       try {
         const token = localStorage.getItem("token");
@@ -75,8 +101,8 @@ const EvaluationsPage = () => {
         }
 
         const headers = { Authorization: `Bearer ${token}` };
-        const urlAll = `https://backendeva.onrender.com/Evaluation/staff/${id}`;
-        const urlInProgress = `https://backendeva.onrender.com/Evaluation/staff/${id}/${dateEvaluation}`;
+        const urlAll = `http://localhost:7000/Evaluation/staff/${id}`;
+        const urlInProgress = `http://localhost:7000/Evaluation/staff/${id}/${dateEvaluation}`;
 
         const [resAll, resInProgress] = await Promise.all([
           fetch(urlAll, { headers }),
@@ -170,7 +196,7 @@ const EvaluationsPage = () => {
             <Card key={ev._id} variant="outlined">
               <CardContent>
                 <Typography variant="subtitle1">
-                   {new Date(ev.dateEvaluation).toLocaleDateString()}
+                  {new Date(ev.dateEvaluation).toLocaleDateString()}
                 </Typography>
                 <Typography variant="body2">Statut : {ev.statutEvaluation}</Typography>
 
@@ -199,6 +225,39 @@ const EvaluationsPage = () => {
                     Continuer l&apos;évaluation
                   </Button>
                 )}
+              </CardContent>
+            </Card>
+          ))}
+        </Stack>
+      )}
+      <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>
+        🌟 Évaluations du potentiel
+      </Typography>
+
+      {evaluationsPotentiel.length === 0 ? (
+        <Typography>Aucune évaluation de potentiel disponible.</Typography>
+      ) : (
+        <Stack spacing={2}>
+          {evaluationsPotentiel.map((ev) => (
+            <Card key={ev._id} variant="outlined">
+              <CardContent>
+                <Typography variant="subtitle1">
+                  {new Date(ev.dateEvaluation).toLocaleDateString()}
+                </Typography>
+                <Typography>Classification auto : <strong>{ev.classificationAutomatique}</strong></Typography>
+                {ev.classificationFinale && (
+                  <Typography>Classification finale : <strong>{ev.classificationFinale}</strong></Typography>
+                )}
+
+                <Button
+                  variant="outlined"
+                  sx={{ mt: 1 }}
+                  onClick={() => {
+                    router.push(`/with-sidebar/evaluationPotentiel/${ev._id}`);
+                  }}
+                >
+                  Voir l&apos;évaluation
+                </Button>
               </CardContent>
             </Card>
           ))}

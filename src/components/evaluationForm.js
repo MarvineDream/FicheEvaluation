@@ -27,7 +27,7 @@ import {
 } from "@mui/material";
 import { AddCircleOutline, RemoveCircleOutline } from "@mui/icons-material";
 
-const BACKEND_URL = "https://backendeva.onrender.com/Evaluation";
+const BACKEND_URL = "http://localhost:7000/Evaluation";
 
 export default function EvaluationPage() {
   const searchParams = useSearchParams();

@@ -28,7 +28,7 @@ const NewEvaluationPage = () => {
         }
 
         // Fetch staff
-        const resStaff = await fetch(`https://backendeva.onrender.com/staff/${staffId}`, {
+        const resStaff = await fetch(`http://localhost:7000/staff/${staffId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!resStaff.ok) throw new Error("Impossible de récupérer les infos du staff");
@@ -36,7 +36,7 @@ const NewEvaluationPage = () => {
         setStaffData(staff);
 
         // Fetch evaluation
-        const resEval = await fetch(`https://backendeva.onrender.com/Evaluation/staff/${staffId}/${dateEvaluation}`, {
+        const resEval = await fetch(`http://localhost:7000/Evaluation/staff/${staffId}/${dateEvaluation}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 

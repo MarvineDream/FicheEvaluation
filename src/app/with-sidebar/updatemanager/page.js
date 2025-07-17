@@ -24,7 +24,7 @@ export default function UpdateManagerPage() {
   const fetchManagers = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("https://backendeva.onrender.com/users?role=MANAGER", {
+      const res = await fetch("http://localhost:7000/users?role=MANAGER", {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -46,7 +46,7 @@ export default function UpdateManagerPage() {
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(
-        `https://backendeva.onrender.com/users/manager/${selectedId}/departement`,
+        `http://localhost:7000/users/manager/${selectedId}/departement`,
         {
           method: "PUT",
           headers: {

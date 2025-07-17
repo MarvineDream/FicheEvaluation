@@ -41,7 +41,7 @@ const FicheEvaluationPage = () => {
     const fetchEvaluation = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch(`https://backendeva.onrender.com/Evaluation/${id}`, {
+        const res = await fetch(`http://localhost:7000/Evaluation/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) throw new Error("Erreur lors de la récupération de l'évaluation");

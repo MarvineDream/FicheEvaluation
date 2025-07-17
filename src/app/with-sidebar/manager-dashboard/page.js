@@ -19,7 +19,7 @@ import {
 import { useTheme } from "@mui/material/styles";
 import { Users, ClipboardList, Clock, User2 } from "lucide-react";
 
-const API_URL = "https://backendeva.onrender.com";
+const API_URL = "http://localhost:7000";
 
 export default function ManagerDashboardPage() {
   const [staffs, setStaffs] = useState([]);

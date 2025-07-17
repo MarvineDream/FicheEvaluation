@@ -22,7 +22,7 @@ export default function useAuth({ redirectTo = "/login" } = {}) {
 
       // Si l'utilisateur est un Manager, on appelle /manager avec token
       if (parsedUser.role === "Manager") {
-        fetch("https://backendeva.onrender.com/staff/manager", {
+        fetch("http://localhost:7000/staff/manager", {
           headers: {
             Authorization: `Bearer ${storedToken}`,
           },

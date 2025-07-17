@@ -72,7 +72,7 @@ export default function DashboardRHAdmin() {
     const fetchDepartements = async () => {
       try {
         const token = JSON.parse(localStorage.getItem("user"))?.token;
-        const res = await fetch("https://backendeva.onrender.com/departement", {
+        const res = await fetch("http://localhost:7000/departement", {
           headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();
@@ -89,7 +89,7 @@ export default function DashboardRHAdmin() {
   const fetchStats = async () => {
     try {
       const token = JSON.parse(localStorage.getItem("user"))?.token;
-      const res = await fetch("https://backendeva.onrender.com/staff/stats", {
+      const res = await fetch("http://localhost:7000/staff/stats", {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -111,7 +111,7 @@ export default function DashboardRHAdmin() {
 
     try {
       const token = JSON.parse(localStorage.getItem("user"))?.token;
-      const res = await fetch("https://backendeva.onrender.com/auth/creer", {
+      const res = await fetch("http://localhost:7000/auth/creer", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -138,7 +138,7 @@ export default function DashboardRHAdmin() {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch('https://backendeva.onrender.com/staff/evolution', {
+        const response = await fetch('http://localhost:7000/staff/evolution', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
