@@ -174,7 +174,7 @@ const FicheEvaluationPage = () => {
           spacing={2}
           mb={3}
           sx={{
-            maxWidth: 800,   // largeur maximale du bloc (ajuste selon besoin)
+            maxWidth: 800,   // largeur maximale du bloc
             mx: "auto",      // centre horizontalement
           }}
         >
