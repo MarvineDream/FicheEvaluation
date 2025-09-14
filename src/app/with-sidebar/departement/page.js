@@ -16,7 +16,7 @@ const API_BASE = 'http://localhost:7000';
 export default function DepartmentsPage() {
   const [departments, setDepartments] = useState([]);
   const [employees, setEmployees] = useState([]);
-  const [users, setUsers] = useState([]); 
+  const [users, setUsers] = useState([]);
   const [openCreate, setOpenCreate] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [selectedDept, setSelectedDept] = useState(null);
@@ -27,11 +27,7 @@ export default function DepartmentsPage() {
 
   const fetchData = React.useCallback(async () => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-
-    if (!token) {
-      console.error("Token manquant");
-      return;
-    }
+    if (!token) return;
 
     const headers = { Authorization: `Bearer ${token}` };
 
@@ -42,20 +38,15 @@ export default function DepartmentsPage() {
         fetch(`${API_BASE}/auth/users`, { headers }),
       ]);
 
-      if (!depsRes.ok || !empRes.ok || !usersRes.ok) {
-        throw new Error('Erreur lors du chargement des données');
-      }
-
       const depsData = await depsRes.json();
       const empData = await empRes.json();
-      const usersData = await usersRes.json(); 
+      const usersData = await usersRes.json();
 
-      setUsers(usersData); 
+      setUsers(usersData);
       setDepartments(depsData);
       setEmployees(empData);
     } catch (error) {
       console.error("Erreur fetchData:", error);
-      alert("Erreur réseau ou réponse invalide");
     }
   }, []);
 
@@ -64,22 +55,17 @@ export default function DepartmentsPage() {
   }, [fetchData]);
 
   const getStats = (depId) => {
-  const filtered = employees.filter(e => {
-    const depMatch = typeof e.departement === 'object' ? e.departement._id === depId : e.departement === depId;
-    return depMatch;
-  });
+    const filtered = employees.filter(e => {
+      const depMatch = typeof e.departement === 'object' ? e.departement._id === depId : e.departement === depId;
+      return depMatch;
+    });
 
-  console.log(`[getStats] Département ${depId} → ${filtered.length} employés trouvés`);
-
-  const cdi = filtered.filter(e => e.typeContrat === 'CDI').length;
-const cdd = filtered.filter(e => e.typeContrat === 'CDD').length;
-const stage = filtered.filter(e => e.typeContrat === 'Stagiaire').length;
-
-  console.log(`[getStats] CDI: ${cdi}, CDD: ${cdd}, Stage: ${stage}`);
-
-  return { cdi, cdd, stage };
-};
-
+    return {
+      cdi: filtered.filter(e => e.typeContrat === 'CDI').length,
+      cdd: filtered.filter(e => e.typeContrat === 'CDD').length,
+      stage: filtered.filter(e => e.typeContrat === 'Stagiaire').length,
+    };
+  };
 
   const resetForm = () => {
     setNewName('');
@@ -89,15 +75,12 @@ const stage = filtered.filter(e => e.typeContrat === 'Stagiaire').length;
 
   const handleCreate = async () => {
     if (!newName.trim()) return alert("Le nom est requis");
-
     const token = localStorage.getItem('token');
+
     try {
       const res = await fetch(`${API_BASE}/departement`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           name: newName,
           description: newDescription,
@@ -106,27 +89,22 @@ const stage = filtered.filter(e => e.typeContrat === 'Stagiaire').length;
       });
 
       if (!res.ok) throw new Error('Erreur lors de la création');
-
       await fetchData();
       resetForm();
       setOpenCreate(false);
     } catch (err) {
       console.error(err);
-      alert("Erreur lors de la création");
     }
   };
 
   const handleEdit = async () => {
     if (!newName.trim() || !selectedDept) return;
-
     const token = localStorage.getItem('token');
+
     try {
       const res = await fetch(`${API_BASE}/departement/${selectedDept._id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           name: newName,
           description: newDescription,
@@ -135,20 +113,19 @@ const stage = filtered.filter(e => e.typeContrat === 'Stagiaire').length;
       });
 
       if (!res.ok) throw new Error('Erreur lors de la modification');
-
       await fetchData();
       resetForm();
       setOpenEdit(false);
       setSelectedDept(null);
     } catch (err) {
       console.error(err);
-      alert("Erreur lors de la modification");
     }
   };
 
   const handleDelete = async (id) => {
     const token = localStorage.getItem('token');
     if (!window.confirm("Supprimer ce département ?")) return;
+
     try {
       const res = await fetch(`${API_BASE}/departement/${id}`, {
         method: 'DELETE',
@@ -156,11 +133,9 @@ const stage = filtered.filter(e => e.typeContrat === 'Stagiaire').length;
       });
 
       if (!res.ok) throw new Error('Erreur lors de la suppression');
-
       setDepartments(prev => prev.filter(d => d._id !== id));
     } catch (err) {
       console.error(err);
-      alert("Erreur lors de la suppression");
     }
   };
 
@@ -173,87 +148,108 @@ const stage = filtered.filter(e => e.typeContrat === 'Stagiaire').length;
   };
 
   return (
-      <Box p={4}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
-        <Typography variant="h4" fontWeight="bold" color="primary">
+    <Box p={2}>
+
+      {/* HEADER RESPONSIVE */}
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={4}
+        flexDirection={{ xs: "column", md: "row" }}
+        gap={2}
+      >
+        <Typography
+          variant="h4"
+          fontWeight="bold"
+          color="#4caf50"
+          textAlign={{ xs: "center", md: "left" }}
+        >
           <BusinessIcon style={{ marginBottom: -4, marginRight: 8 }} />
           Départements
         </Typography>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpenCreate(true)}>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => setOpenCreate(true)}
+          sx={{
+            backgroundColor: "#57E613",
+            "&:hover": { backgroundColor: "#4cc210" },
+          }}
+        >
           Nouveau département
         </Button>
       </Box>
 
-      <Grid container spacing={2} mb={4}>
-        <Grid item xs={12} md={3}>
-          <StatCard label="Départements" value={departments.length} />
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <StatCard label="Employés" value={employees.length} />
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <StatCard label="Avec Manager" value={departments.filter(d => d.managerId).length} />
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <StatCard
-            label="Moyenne / Département"
-            value={departments.length ? Math.round(employees.length / departments.length) : 0}
-          />
-        </Grid>
-      </Grid>
-
-      <Grid container spacing={3}>
+      {/* LISTE DES DEPARTEMENTS */}
+      <Grid container spacing={3} justifyContent="center">
         {departments.map(dep => {
           const stats = getStats(dep._id);
           const manager = users.find(u => u._id === (dep.managerId?._id || dep.managerId));
 
           return (
-            <Grid item xs={12} md={6} lg={4} key={dep._id}>
-              <StatCard 
-                key={dep._id} 
+            <Grid item xs={12} sm={10} md={6} lg={4} key={dep._id}>
+              <StatCard
                 dep={dep}
-                manager={manager} 
-                stats={stats} 
-                openEditDialog={openEditDialog} 
-                handleDelete={handleDelete} 
+                manager={manager}
+                stats={stats}
+                openEditDialog={openEditDialog}
+                handleDelete={handleDelete}
               />
             </Grid>
           );
         })}
       </Grid>
 
-      <Dialog open={openCreate} onClose={() => setOpenCreate(false)}>
+      {/* CREATION */}
+      <Dialog open={openCreate} onClose={() => setOpenCreate(false)} fullWidth maxWidth="sm">
         <DialogTitle>Nouveau département</DialogTitle>
         <DialogContent>
           <DeptForm {...{ newName, newDescription, newManagerId, setNewName, setNewDescription, setNewManagerId, users }} />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenCreate(false)}>Annuler</Button>
-          <Button variant="contained" onClick={handleCreate}>Créer</Button>
+          <Button
+            variant="contained"
+            onClick={handleCreate}
+            sx={{
+              backgroundColor: '#57E613',
+              '&:hover': { backgroundColor: '#4cc210' },
+            }}
+          >
+            Créer
+          </Button>
         </DialogActions>
       </Dialog>
 
-      <Dialog open={openEdit} onClose={() => setOpenEdit(false)}>
+      {/* EDITION */}
+      <Dialog open={openEdit} onClose={() => setOpenEdit(false)} fullWidth maxWidth="sm">
         <DialogTitle>Modifier département</DialogTitle>
         <DialogContent>
           <DeptForm {...{ newName, newDescription, newManagerId, setNewName, setNewDescription, setNewManagerId, users }} />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenEdit(false)}>Annuler</Button>
-          <Button variant="contained" onClick={handleEdit}>Enregistrer</Button>
+          <Button
+            variant="contained"
+            onClick={handleEdit}
+            sx={{
+              backgroundColor: '#4caf50',
+              '&:hover': { backgroundColor: '#4cc210' },
+            }}
+          >
+            Enregistrer
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>
   );
 }
 
+/* COMPONENTS */
+
 function StatCard({ dep, manager, stats, openEditDialog, handleDelete }) {
   const router = useRouter();
-
-
-  if (!dep) {
-    return null; // Ne rien rendre si dep est undefined
-  }
 
   return (
     <Paper
@@ -267,8 +263,8 @@ function StatCard({ dep, manager, stats, openEditDialog, handleDelete }) {
         '&:hover': { boxShadow: 6 },
       }}
     >
-      <Typography variant="h6" gutterBottom color="primary">{dep.name}</Typography>
-      <Typography variant="body2" color="text.secondary">
+      <Typography variant="h6" gutterBottom color="#4caf50">{dep.name}</Typography>
+      <Typography variant="body2" color="#4caf50">
         Créé le {new Date(dep.createdAt).toLocaleDateString('fr-FR')}
       </Typography>
 
@@ -282,25 +278,37 @@ function StatCard({ dep, manager, stats, openEditDialog, handleDelete }) {
       <Box mt={2}>
         <Typography variant="subtitle2">Effectifs</Typography>
         <Typography variant="body2" sx={{ mt: 0.5 }}>
-          <strong style={{ color: '#4caf50' }}>CDI</strong>: {stats.cdi} &nbsp;|&nbsp;
+          <strong style={{ color: '#57E613' }}>CDI</strong>: {stats.cdi} &nbsp;|&nbsp;
           <strong style={{ color: '#2196f3' }}>CDD</strong>: {stats.cdd} &nbsp;|&nbsp;
           <strong style={{ color: '#ff9800' }}>Stage</strong>: {stats.stage}
         </Typography>
       </Box>
 
-      <Box mt={3} display="flex" justifyContent="space-between">
-        <Button 
-          variant="outlined" 
-          size="small" 
-          onClick={() => router.push(`/departement/${dep._id}/team`)}
-
+      <Box mt={3} display="flex" justifyContent="space-between" flexWrap="wrap" gap={1}>
+        <Button
+          variant="outlined"
+          size="small"
+          onClick={() => router.push(`/with-sidebar/departement/${dep._id}/team`)}
+          sx={{
+            color: '#57E613',
+            borderColor: '#57E613',
+            '&:hover': {
+              backgroundColor: 'rgba(87, 230, 19, 0.08)',
+              borderColor: '#4cc210',
+              color: '#4cc210'
+            }
+          }}
         >
           Voir l&apos;équipe
         </Button>
-        <Button 
-          variant="contained" 
-          size="small" 
+        <Button
+          variant="contained"
+          size="small"
           onClick={() => openEditDialog(dep)}
+          sx={{
+            backgroundColor: '#4caf50',
+            '&:hover': { backgroundColor: '#4cc210' }
+          }}
         >
           Modifier
         </Button>
@@ -317,14 +325,8 @@ function StatCard({ dep, manager, stats, openEditDialog, handleDelete }) {
 function DeptForm({ newName, newDescription, newManagerId, setNewName, setNewDescription, setNewManagerId, users }) {
   return (
     <>
-      <TextField
-        fullWidth label="Nom du département" value={newName}
-        onChange={e => setNewName(e.target.value)} margin="normal"
-      />
-      <TextField
-        fullWidth label="Description" value={newDescription}
-        onChange={e => setNewDescription(e.target.value)} margin="normal"
-      />
+      <TextField fullWidth label="Nom du département" value={newName} onChange={e => setNewName(e.target.value)} margin="normal" />
+      <TextField fullWidth label="Description" value={newDescription} onChange={e => setNewDescription(e.target.value)} margin="normal" multiline rows={3} />
       <FormControl fullWidth margin="normal">
         <InputLabel>Manager (optionnel)</InputLabel>
         <Select value={newManagerId} onChange={e => setNewManagerId(e.target.value)}>
@@ -339,4 +341,3 @@ function DeptForm({ newName, newDescription, newManagerId, setNewName, setNewDes
     </>
   );
 }
-

@@ -32,7 +32,7 @@ const EvaluationsPage = () => {
       try {
         const base64Payload = token.split('.')[1];
         const payload = JSON.parse(atob(base64Payload));
-        setUserRole(payload.role); // adapter selon la clé exacte dans votre token
+        setUserRole(payload.role); 
       } catch (err) {
         console.error("Erreur décodage token :", err);
       }

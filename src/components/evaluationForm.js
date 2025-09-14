@@ -64,7 +64,7 @@ export default function EvaluationPage() {
   ]);
 
   const [competences, setCompetences] = useState({
-    savoir: [
+    savoir:  [
       { critere: "Acquis de la formation initiale", description: "Niveau de connaissance et compétences obtenus lors de la formation de base avant l’entrée en poste.", note: "", axeAmelioration: "" },
       { critere: "Acquis de la formation continue", description: "Capacité à intégrer et appliquer les connaissances acquises lors des formations complémentaires ou mises à jour professionnelles.", note: "", axeAmelioration: "" },
       { critere: "Connaissance de l’entreprise", description: "Compréhension de la mission, de la vision, des valeurs, et de l’organisation générale de l’entreprise.", note: "", axeAmelioration: "" },
@@ -577,9 +577,10 @@ export default function EvaluationPage() {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {competences[key].map((comp, idx) => (
+                      {competences.map((comp, idx) => (
                         <TableRow key={idx}>
                           <TableCell>{comp.critere}</TableCell>
+                          
                           <TableCell>
                             <TextField
                               select

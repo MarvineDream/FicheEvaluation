@@ -18,6 +18,7 @@ import {
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { Users, ClipboardList, Clock, User2 } from "lucide-react";
+import EvaluationSelectorButton from "@/components/EvaluationSelectorButton";
 
 const API_URL = "http://localhost:7000";
 
@@ -53,33 +54,38 @@ export default function ManagerDashboardPage() {
   }, []);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const token = localStorage.getItem("token");
-    if (storedUser && token) {
-      const parsedUser = JSON.parse(storedUser);
-      setUser(parsedUser);
-      const fetchStaff = async () => {
-        try {
-          const res = await fetch(`${API_URL}/staff/manager`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          const data = await res.json();
-          setStaffs(
-            Array.isArray(data)
-              ? data.map((s) => ({ ...s, statutEvaluation: getRandomStatus() }))
-              : []
-          );
-        } catch (err) {
-          console.error("Erreur staff:", err);
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchStaff();
-    } else {
-      setLoading(false);
-    }
-  }, []);
+  const storedUser = localStorage.getItem("user");
+  const token = localStorage.getItem("token");
+
+  if (storedUser && token) {
+    const parsedUser = JSON.parse(storedUser);
+    setUser(parsedUser);
+
+    const fetchStaff = async () => {
+      try {
+        const res = await fetch(`${API_URL}/staff/manager`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) throw new Error("Erreur lors de la récupération des collaborateurs");
+
+        const data = await res.json();
+
+        // On prend directement le statutEvaluation présent en base
+        setStaffs(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Erreur staff:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStaff();
+  } else {
+    setLoading(false);
+  }
+}, []);
+
 
   if (loading) {
     return (
@@ -95,10 +101,21 @@ export default function ManagerDashboardPage() {
     return diff <= 30 && diff >= 0;
   });
 
-  const getNomDepartement = (id) => {
-    const departement = departments.find((d) => d._id === id);
-    return departement ? departement.nom : "Inconnu";
-  };
+  const getNomDepartement = (departement) => {
+  if (!departement) return "Inconnu";
+
+  // Cas où c’est un ID (string)
+  if (typeof departement === "string") {
+    const found = departement.find((d) => d._id === departement);
+    return found ? found.name : "Inconnu"; // ✅ utiliser "name"
+  }
+
+  // Cas où c’est un objet déjà peuplé
+  return departement.name || "Inconnu"; // ✅ utiliser "name"
+};
+
+
+
 
   const StatCard = ({ Icon, title, value }) => (
     <Paper elevation={3} sx={{ p: 3, borderRadius: 4, textAlign: "center" }}>
@@ -120,22 +137,53 @@ export default function ManagerDashboardPage() {
             <Typography variant="body2" color="text.secondary">
               Manager – {getNomDepartement(user?.departement)}
             </Typography>
+
           </Box>
         </Stack>
       </Paper>
 
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={4}><StatCard title="Collaborateurs" value={staffs.length} Icon={Users} /></Grid>
-        <Grid item xs={12} md={4}><StatCard title="Évaluations en attente" value={staffs.filter(s => s.statutEvaluation === "En attente").length} Icon={ClipboardList} /></Grid>
-        <Grid item xs={12} md={4}><StatCard title="Contrats expirants" value={contractsExpiringSoon.length} Icon={Clock} /></Grid>
+      <Grid container spacing={3} justifyContent="center">
+        <Grid item xs={12} sm={6} md={4} sx={{ display: "flex", justifyContent: "center" }}>
+          <Box sx={{ width: "100%", maxWidth: 320, height: "100%" }}>
+            <StatCard
+              title="Collaborateurs"
+              value={staffs.length}
+              Icon={Users}
+            />
+          </Box>
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={4} sx={{ display: "flex", justifyContent: "center" }}>
+          <Box sx={{ width: "100%", maxWidth: 320, height: "100%" }}>
+            <StatCard
+              title="Évaluations en attente"
+              value={staffs.filter(s => s.statutEvaluation === "En attente").length}
+              Icon={ClipboardList}
+            />
+          </Box>
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={4} sx={{ display: "flex", justifyContent: "center" }}>
+          <Box sx={{ width: "100%", maxWidth: 320, height: "100%" }}>
+            <StatCard
+              title="Contrats expirants"
+              value={contractsExpiringSoon.length}
+              Icon={Clock}
+            />
+          </Box>
+        </Grid>
       </Grid>
 
       <Box mt={6}>
-        <Typography variant="h6" gutterBottom>📅 Contrats proches de léchéance</Typography>
+        <Typography variant="h6" gutterBottom>
+          📅 Contrats proches de l&apos;échéance
+        </Typography>
         <Paper elevation={2} sx={{ p: 2, borderRadius: 3 }}>
           <List>
             {contractsExpiringSoon.length === 0 ? (
-              <ListItem><ListItemText primary="Aucun contrat proche de l’échéance" /></ListItem>
+              <ListItem>
+                <ListItemText primary="Aucun contrat proche de l’échéance" />
+              </ListItem>
             ) : (
               contractsExpiringSoon.map((s) => (
                 <ListItem key={s._id} divider>
@@ -143,15 +191,16 @@ export default function ManagerDashboardPage() {
                     primary={`${s.nom} ${s.prenom} – ${s.poste}`}
                     secondary={`Fin : ${new Date(s.dateFinContrat).toLocaleDateString("fr-FR")}`}
                   />
-                  <Button variant="outlined" size="small" href={`/with-sidebar/evaluation?staffId=${s._id}`}>
-                    Évaluer
-                  </Button>
+                  {/* Remplacement du bouton par EvaluationSelectorButton */}
+                  <EvaluationSelectorButton employee={s} buttonLabel="Évaluer"/>
+
                 </ListItem>
               ))
             )}
           </List>
         </Paper>
       </Box>
+
 
       <Box mt={6}>
         <Typography variant="h6" gutterBottom>👥 Liste des collaborateurs</Typography>
@@ -174,8 +223,8 @@ export default function ManagerDashboardPage() {
                       s.statutEvaluation === "En attente"
                         ? "#f57c00"
                         : s.statutEvaluation === "En cours"
-                        ? "#1976d2"
-                        : "#388e3c",
+                          ? "#1976d2"
+                          : "#388e3c",
                   }}
                 >
                   {s.statutEvaluation}

@@ -9,10 +9,8 @@ import {
   Divider,
   CircularProgress,
   Paper,
-  Button,
   Grid,
   TextField,
-  Stack,
   Table,
   TableHead,
   TableRow,
@@ -20,7 +18,7 @@ import {
   TableBody,
 } from "@mui/material";
 
-const FicheEvaluationPage = () => {
+const FicheEvaluationPrint = () => {
   const { id } = useParams();
   const [evaluation, setEvaluation] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -43,19 +41,6 @@ const FicheEvaluationPage = () => {
     };
     if (id) fetchEvaluation();
   }, [id]);
-
-  const handleExportPDF = async () => {
-    const html2pdf = (await import("html2pdf.js")).default;
-    html2pdf()
-      .set({
-        margin: 0,
-        filename: `Fiche_Evaluation_${id}.pdf`,
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-      })
-      .from(ficheRef.current)
-      .save();
-  };
 
   if (loading)
     return (
@@ -102,7 +87,11 @@ const FicheEvaluationPage = () => {
   };
 
   const sectionTitle = (num, text) => (
-    <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+    <Typography
+      variant="h6"
+      gutterBottom
+      sx={{ mt: 2, fontFamily: `"Times New Roman", Times, serif` }}
+    >
       {num}. {text}
     </Typography>
   );
@@ -110,116 +99,164 @@ const FicheEvaluationPage = () => {
   return (
     <Container
       maxWidth={false}
-      sx={{ display: "flex", justifyContent: "center", mt: 4, mb: 6 }}
+      sx={{ display: "flex", justifyContent: "center", mt: 0, mb: 0 }}
     >
       <Paper
         ref={ficheRef}
-        elevation={3}
+        elevation={0}
         sx={{
           width: "210mm",
           minHeight: "297mm",
-          p: "20mm",
+          p: "15mm",
           fontFamily: `"Times New Roman", Times, serif`,
           color: "black",
-          position: "relative",
-          border: "2px solid black",
+          border: "none",
+          boxShadow: "none",
         }}
       >
-        {/* Ligne 1 : Sous-titre et code */}
-
-
-        {/* Ligne 2 : Logo + Titre principal */}
-        <Grid container alignItems="center" justifyContent="center" spacing={2} sx={{ mb: 2 }}>
-          {/* Logo à gauche */}
-          <Grid item>
+        {/* En-tête */}
+        <Grid container alignItems="center" spacing={2} sx={{ mb: 2 }}>
+          <Grid item xs={3}>
             <img
-              src="/logo-bamboo.svg"
+              src="/logo.png"
               alt="Logo"
-              style={{ width: "150px", height: "auto" }}
+              style={{ width: "80px", height: "auto" }}
             />
           </Grid>
-
-          {/* Titre principal */}
-          <Grid item>
-            <Typography variant="h5" fontWeight="bold" align="center">
-              Fiche d’évaluation individuelle
+          <Grid item xs={9} textAlign="center">
+            <Typography variant="body1" sx={{ fontWeight: "bold" }}>
+              République Gabonaise
+            </Typography>
+            <Typography variant="body2">
+              Ministère de la Fonction Publique
+            </Typography>
+            <Typography variant="body2">
+              Direction des Ressources Humaines
             </Typography>
           </Grid>
         </Grid>
 
-        <Box
-          display="flex"
-          justifyContent="flex-end"
-          alignItems="center"
-          gap={1}
-          mb={1}
+        <Divider sx={{ my: 1, borderColor: "black" }} />
+
+        <Typography
+          variant="h5"
+          align="center"
+          fontWeight="bold"
+          gutterBottom
+          sx={{ fontFamily: `"Times New Roman", Times, serif` }}
         >
-          <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-            A mi-parcours
-          </Typography>
-          <Typography variant="body2">
-            MPA/EMP/01/DRH
-          </Typography>
-        </Box>
-
-
+          FICHE D’ÉVALUATION INDIVIDUELLE – A MI-PARCOURS
+        </Typography>
+        <Typography variant="body2" align="center" gutterBottom>
+          Réf. : MPA/EMP/01/DRH
+        </Typography>
 
         <Divider sx={{ my: 2, borderColor: "black" }} />
 
         {/* 1. Infos collaborateur */}
         {sectionTitle(1, "INFORMATIONS DE L’AGENT ÉVALUÉ")}
-
-        <Grid
-          container
-          spacing={2}
-          mb={3}
-          sx={{
-            maxWidth: 800,   // largeur maximale du bloc (ajuste selon besoin)
-            mx: "auto",      // centre horizontalement
-          }}
-        >
+        <Grid container spacing={2} mb={3}>
           <Grid item xs={6}>
-            <TextField label="Nom" fullWidth value={agent.nom || "-"} />
+            <TextField
+              label="Nom"
+              fullWidth
+              value={agent.nom || "-"}
+              disabled
+            />
           </Grid>
           <Grid item xs={6}>
-            <TextField label="Prénom" fullWidth value={agent.prenom || "-"} />
+            <TextField
+              label="Prénom"
+              fullWidth
+              value={agent.prenom || "-"}
+              disabled
+            />
           </Grid>
           <Grid item xs={6}>
-            <TextField label="Matricule" fullWidth value={agent.matricule || "-"} />
+            <TextField
+              label="Matricule"
+              fullWidth
+              value={agent.matricule || "-"}
+              disabled
+            />
           </Grid>
           <Grid item xs={6}>
-            <TextField label="Téléphone" fullWidth value={agent.telephone || "-"} />
+            <TextField
+              label="Téléphone"
+              fullWidth
+              value={agent.telephone || "-"}
+              disabled
+            />
           </Grid>
           <Grid item xs={6}>
-            <TextField label="Emploi occupé" fullWidth value={agent.emploi || "-"} />
+            <TextField
+              label="Emploi occupé"
+              fullWidth
+              value={agent.emploi || "-"}
+              disabled
+            />
           </Grid>
           <Grid item xs={6}>
-            <TextField label="Direction" fullWidth value={agent.direction || "-"} />
+            <TextField
+              label="Direction"
+              fullWidth
+              value={agent.direction || "-"}
+              disabled
+            />
           </Grid>
           <Grid item xs={6}>
-            <TextField label="Classification" fullWidth value={agent.classification || "-"} />
+            <TextField
+              label="Classification"
+              fullWidth
+              value={agent.classification || "-"}
+              disabled
+            />
           </Grid>
           <Grid item xs={6}>
-            <TextField label="Échelon / Grade" fullWidth value={agent.echelon || "-"} />
+            <TextField
+              label="Échelon / Grade"
+              fullWidth
+              value={agent.echelon || "-"}
+              disabled
+            />
           </Grid>
           <Grid item xs={6}>
-            <TextField label="Supérieur hiérarchique" fullWidth value={agent.superieur || "-"} />
+            <TextField
+              label="Supérieur hiérarchique"
+              fullWidth
+              value={agent.superieur || "-"}
+              disabled
+            />
           </Grid>
           <Grid item xs={6}>
-            <TextField label="Type de contrat" fullWidth value={agent.typeContrat || "-"} />
+            <TextField
+              label="Type de contrat"
+              fullWidth
+              value={agent.typeContrat || "-"}
+              disabled
+            />
           </Grid>
           <Grid item xs={6}>
             <TextField
               label="Date d’embauche"
               fullWidth
-              value={agent.dateEmbauche ? new Date(agent.dateEmbauche).toLocaleDateString() : "-"}
+              value={
+                agent.dateEmbauche
+                  ? new Date(agent.dateEmbauche).toLocaleDateString()
+                  : "-"
+              }
+              disabled
             />
           </Grid>
           <Grid item xs={6}>
-            <TextField label="Ancienneté" fullWidth value={agent.anciennete || "-"} />
+            <TextField
+              label="Ancienneté"
+              fullWidth
+              value={agent.anciennete || "-"}
+              disabled
+            />
           </Grid>
         </Grid>
-
 
         {/* 2. Objectifs fixés */}
         {sectionTitle(2, "APPRÉCIATION DE LA PERFORMANCE (Objectifs fixés)")}
@@ -231,6 +268,7 @@ const FicheEvaluationPage = () => {
                 "Indicateurs",
                 "Attendu",
                 "Réalisé",
+                "% Atteinte",
                 "Commentaires",
               ].map((h, i) => (
                 <TableCell key={i} sx={headerCellStyle}>
@@ -245,24 +283,21 @@ const FicheEvaluationPage = () => {
                 <TableCell sx={cellStyle}>
                   {obj.activite || `Activité ${idx + 1}`}
                 </TableCell>
-                <TableCell sx={cellStyle}>
-                  {obj.indicateurs || "-"}
-                </TableCell>
+                <TableCell sx={cellStyle}>{obj.indicateurs || "-"}</TableCell>
                 <TableCell sx={cellStyle}>{obj.attendu || "-"}</TableCell>
                 <TableCell sx={cellStyle}>{obj.realise || "-"}</TableCell>
-                <TableCell sx={cellStyle}>
-                  {obj.pourcentage || "-"}
-                </TableCell>
-                <TableCell sx={cellStyle}>
-                  {obj.commentaire || "-"}
-                </TableCell>
+                <TableCell sx={cellStyle}>{obj.pourcentage || "-"}</TableCell>
+                <TableCell sx={cellStyle}>{obj.commentaire || "-"}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
 
         {/* 3. Objectifs hors fixés */}
-        {sectionTitle(3, "APPRÉCIATION DE LA PERFORMANCE (Hors objectifs fixés)")}
+        {sectionTitle(
+          3,
+          "APPRÉCIATION DE LA PERFORMANCE (Hors objectifs fixés)"
+        )}
         <Table size="small" sx={{ mb: 3, border: "2px solid black" }}>
           <TableHead>
             <TableRow>
@@ -271,6 +306,7 @@ const FicheEvaluationPage = () => {
                 "Indicateurs",
                 "Attendu",
                 "Réalisé",
+                "% Atteinte",
                 "Commentaires",
               ].map((h, i) => (
                 <TableCell key={i} sx={headerCellStyle}>
@@ -285,17 +321,11 @@ const FicheEvaluationPage = () => {
                 <TableCell sx={cellStyle}>
                   {obj.activite || `Activité ${idx + 1}`}
                 </TableCell>
-                <TableCell sx={cellStyle}>
-                  {obj.indicateurs || "-"}
-                </TableCell>
+                <TableCell sx={cellStyle}>{obj.indicateurs || "-"}</TableCell>
                 <TableCell sx={cellStyle}>{obj.attendu || "-"}</TableCell>
                 <TableCell sx={cellStyle}>{obj.realise || "-"}</TableCell>
-                <TableCell sx={cellStyle}>
-                  {obj.pourcentage || "-"}
-                </TableCell>
-                <TableCell sx={cellStyle}>
-                  {obj.commentaire || "-"}
-                </TableCell>
+                <TableCell sx={cellStyle}>{obj.pourcentage || "-"}</TableCell>
+                <TableCell sx={cellStyle}>{obj.commentaire || "-"}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -303,39 +333,41 @@ const FicheEvaluationPage = () => {
 
         {/* 4. Compétences */}
         {sectionTitle(4, "ÉVALUATION DES COMPÉTENCES")}
-        {["Savoir", "Savoir-faire", "Savoir-être", "Valeurs HARDIE", "Discipline"].map(
-          (categorie, idx) => (
-            <Box key={idx} sx={{ mb: 3 }}>
-              <Typography fontWeight="bold" mb={1}>
-                {categorie}
-              </Typography>
-              <Table size="small" sx={{ border: "2px solid black" }}>
-                <TableHead>
-                  <TableRow>
-                    {["Critère", "Note", "Axe d’amélioration"].map((h, i) => (
-                      <TableCell key={i} sx={headerCellStyle}>
-                        {h}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {(competences[categorie] || []).map((comp, i) => (
-                    <TableRow key={i}>
-                      <TableCell sx={cellStyle}>{comp.critere}</TableCell>
-                      <TableCell sx={cellStyle}>
-                        {comp.note || "-"}
-                      </TableCell>
-                      <TableCell sx={cellStyle}>
-                        {comp.axeAmelioration || "-"}
-                      </TableCell>
-                    </TableRow>
+        {[
+          "Savoir",
+          "Savoir-faire",
+          "Savoir-être",
+          "Valeurs HARDIE",
+          "Discipline",
+        ].map((categorie, idx) => (
+          <Box key={idx} sx={{ mb: 3 }}>
+            <Typography fontWeight="bold" mb={1}>
+              {categorie}
+            </Typography>
+            <Table size="small" sx={{ border: "2px solid black" }}>
+              <TableHead>
+                <TableRow>
+                  {["Critère", "Note", "Axe d’amélioration"].map((h, i) => (
+                    <TableCell key={i} sx={headerCellStyle}>
+                      {h}
+                    </TableCell>
                   ))}
-                </TableBody>
-              </Table>
-            </Box>
-          )
-        )}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {(competences[categorie] || []).map((comp, i) => (
+                  <TableRow key={i}>
+                    <TableCell sx={cellStyle}>{comp.critere}</TableCell>
+                    <TableCell sx={cellStyle}>{comp.note || "-"}</TableCell>
+                    <TableCell sx={cellStyle}>
+                      {comp.axeAmelioration || "-"}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Box>
+        ))}
 
         {/* 5. Appréciation globale */}
         {sectionTitle(5, "APPRÉCIATION GLOBALE")}
@@ -366,59 +398,8 @@ const FicheEvaluationPage = () => {
           sx={{ mb: 4 }}
         />
 
-        {/* 7. Commentaires & Propositions */}
-        {sectionTitle(7, "COMMENTAIRES ET PROPOSITIONS")}
-        <Typography variant="subtitle1">
-          Appréciations et commentaires du collaborateur
-        </Typography>
-        <TextField
-          fullWidth
-          multiline
-          minRows={3}
-          value={evaluation.commentairesCollaborateur || ""}
-          disabled
-          sx={{ mb: 3 }}
-        />
-        <Typography variant="subtitle1">
-          Commentaires et propositions du staff (N)
-        </Typography>
-        <Grid container spacing={2} mb={3}>
-          <Grid item xs={6}>
-            <TextField
-              label="Bien dans son poste / poursuivre"
-              fullWidth
-              value={evaluation.staffPropositions?.bienDansPoste || ""}
-              disabled
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              label="Besoin d’accompagnement"
-              fullWidth
-              value={evaluation.staffPropositions?.accompagnement || ""}
-              disabled
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              label="Souhaite changer de poste"
-              fullWidth
-              value={evaluation.staffPropositions?.changementPoste || ""}
-              disabled
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              label="Autres souhaits"
-              fullWidth
-              value={evaluation.staffPropositions?.autresSouhaits || ""}
-              disabled
-            />
-          </Grid>
-        </Grid>
-
-        {/* 8. Avis du Directeur */}
-        {sectionTitle(8, "AVIS ET APPRÉCIATION GÉNÉRALE DU DIRECTEUR")}
+        {/* 7. Avis du Directeur */}
+        {sectionTitle(7, "AVIS ET APPRÉCIATION GÉNÉRALE DU DIRECTEUR")}
         <TextField
           label="Appréciation générale du travail"
           fullWidth
@@ -446,33 +427,33 @@ const FicheEvaluationPage = () => {
           disabled
           sx={{ mb: 4 }}
         />
-        <Grid container spacing={2} mb={4}>
+        <Grid container spacing={2}>
           <Grid item xs={6}>
             <TextField
               label="Nom du Directeur"
-              value={evaluation.directeur?.nom || "-"}
-              disabled
               fullWidth
+              value={evaluation.directeur?.nom || ""}
+              disabled
             />
           </Grid>
           <Grid item xs={6}>
             <TextField
               label="Date de signature"
+              fullWidth
               value={
                 evaluation.directeur?.dateSignature
                   ? new Date(
-                    evaluation.directeur.dateSignature
-                  ).toLocaleDateString()
-                  : "-"
+                      evaluation.directeur.dateSignature
+                    ).toLocaleDateString()
+                  : ""
               }
               disabled
-              fullWidth
             />
           </Grid>
         </Grid>
 
-        {/* 9. Légende */}
-        {sectionTitle(9, "LÉGENDE DES APPRÉCIATIONS")}
+        {/* 8. Légende */}
+        {sectionTitle(8, "LÉGENDE DES APPRÉCIATIONS")}
         <Table size="small" sx={{ mb: 4, border: "2px solid black" }}>
           <TableHead>
             <TableRow>
@@ -499,8 +480,8 @@ const FicheEvaluationPage = () => {
                 Objectifs moyennement atteints
               </TableCell>
               <TableCell sx={cellStyle}>
-                Correspond partiellement aux attentes. Attitudes mises en
-                œuvre presque tout le temps.
+                Correspond partiellement aux attentes. Attitudes mises en œuvre
+                presque tout le temps.
               </TableCell>
               <TableCell sx={cellStyle}>85%</TableCell>
             </TableRow>
@@ -523,22 +504,11 @@ const FicheEvaluationPage = () => {
         </Table>
 
         {/* Signatures */}
-        <Box
-          sx={{
-            position: "absolute",
-            bottom: "20mm",
-            left: 0,
-            right: 0,
-            px: 6, // marge horizontale
-          }}
-        >
-          <Grid container justifyContent="space-between">
-            {/* Signature Collaborateur */}
-            <Grid item xs={5}>
+        <Box sx={{ position: "absolute", bottom: "20mm", left: 0, right: 0 }}>
+          <Grid container spacing={4}>
+            <Grid item xs={6}>
               <Box textAlign="center">
-                <Typography variant="body1" gutterBottom>
-                  Collaborateur
-                </Typography>
+                <Typography>Collaborateur</Typography>
                 <Box
                   sx={{
                     borderTop: "1px solid black",
@@ -549,18 +519,27 @@ const FicheEvaluationPage = () => {
                 />
               </Box>
             </Grid>
-
-            {/* Signature Supérieur hiérarchique */}
-            <Grid item xs={5}>
+            <Grid item xs={6}>
               <Box textAlign="center">
-                <Typography variant="body1" gutterBottom>
-                  Supérieur hiérarchique
-                </Typography>
+                <Typography>Supérieur hiérarchique</Typography>
                 <Box
                   sx={{
                     borderTop: "1px solid black",
                     mt: 8,
                     width: "80%",
+                    mx: "auto",
+                  }}
+                />
+              </Box>
+            </Grid>
+            <Grid item xs={12} mt={6}>
+              <Box textAlign="center">
+                <Typography>Directeur</Typography>
+                <Box
+                  sx={{
+                    borderTop: "1px solid black",
+                    mt: 8,
+                    width: "50%",
                     mx: "auto",
                   }}
                 />
@@ -568,13 +547,9 @@ const FicheEvaluationPage = () => {
             </Grid>
           </Grid>
         </Box>
-
       </Paper>
-
-      {/* Actions */}
-
     </Container>
   );
 };
 
-export default FicheEvaluationPage;
+export default FicheEvaluationPrint;

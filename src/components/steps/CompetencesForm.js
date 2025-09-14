@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -11,159 +11,241 @@ import {
   Select,
   FormControl,
   Paper,
+  Divider,
 } from "@mui/material";
+import initialCompetences from "@/components/steps/initialCompetences";
 
 export const noteOptions = [
-  "Très Bien",
-  "Bien",
-  "Passable",
-  "Insuffisant",
-  "Pas Concerné",
+  { label: "Très Bien", value: 5 },
+  { label: "Bien", value: 4 },
+  { label: "Passable", value: 3 },
+  { label: "Insuffisant", value: 2 },
+  { label: "Pas Concerné", value: 1 },
 ];
 
+// 🔧 Fusionne données initiales + value venant du parent
+function mergeCompetences(value = {}) {
+  return {
+    savoir: value?.savoir?.length ? value.savoir : initialCompetences.savoir,
+    savoirFaire: value?.savoirFaire?.length
+      ? value.savoirFaire
+      : initialCompetences.savoirFaire,
+    savoirEtre: value?.savoirEtre?.length
+      ? value.savoirEtre
+      : initialCompetences.savoirEtre,
+    valeursHardie: value?.valeursHardie?.length
+      ? value.valeursHardie
+      : initialCompetences.valeursHardie,
+    discipline: value?.discipline?.length
+      ? value.discipline
+      : initialCompetences.discipline,
+  };
+}
+
 const CompetencesForm = ({ value, onChange }) => {
-  const [competences, setCompetences] = useState(() => value || {});
+  const [competences, setCompetences] = useState(() => mergeCompetences(value));
   const isFirstRender = useRef(true);
 
-  // Met à jour l'état local si value change (hors cycle initial)
+  // --- Synchronisation avec parent
   useEffect(() => {
-    if (!shallowEqualArrayObject(value, competences)) {
-      setCompetences(value);
+    const merged = mergeCompetences(value);
+    if (!deepEqual(competences, merged)) {
+      setCompetences(merged);
     }
-  }, [value, competences]);
+  }, [value]);
 
-  // Notifie le parent uniquement après le premier rendu
+  // --- Notifie le parent
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false;
       return;
     }
-    if (onChange) onChange(competences);
+    if (onChange && !deepEqual(competences, value)) {
+      onChange(competences);
+    }
   }, [competences, onChange]);
 
+  // --- Mise à jour locale
   const handleChange = (categorie, index, field, val) => {
     setCompetences((prev) => {
-      const updatedCategorie = [...prev[categorie]];
+      const updatedCategorie = [...(prev[categorie] || [])];
       updatedCategorie[index] = { ...updatedCategorie[index], [field]: val };
       return { ...prev, [categorie]: updatedCategorie };
     });
   };
 
-  const renderSection = (label, key, data = []) => (
-    <Paper elevation={2} sx={{ p: 3, mb: 5, borderRadius: 2 }}>
-      <Typography variant="h6" gutterBottom sx={{ color: "primary.main" }}>
-        {label}
-      </Typography>
+  // ✅ Calcul note par bloc
+  const calculerNoteBloc = (bloc = []) => {
+    const notes = bloc
+      .map((item) => Number(item.note) || 0)
+      .filter((n) => n > 0); // ignore vides
+    if (notes.length === 0) return 0;
+    return (notes.reduce((a, b) => a + b, 0) / notes.length).toFixed(2);
+  };
 
-      {data.length === 0 ? (
-        <Typography color="text.secondary">Aucune donnée</Typography>
-      ) : (
-        data.map((item, index) => {
-          const noteId = `${key}-${index}-note`;
+  // ✅ Calcul note globale (moyenne des blocs)
+  const noteGlobaleCompetences = useMemo(() => {
+    const blocs = [
+      "savoir",
+      "savoirFaire",
+      "savoirEtre",
+      "valeursHardie",
+      "discipline",
+    ];
 
-          return (
-            <Box
-              key={`${key}-${index}`}
-              sx={{
-                mb: 3,
-                p: 2,
-                border: "1px solid #eee",
-                borderRadius: 1,
-                backgroundColor: "#fafafa",
-              }}
-            >
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={4}>
-                  <Typography fontWeight="bold">{item.critere}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {item.description}
-                  </Typography>
-                </Grid>
+    const notesBlocs = blocs.map((b) => calculerNoteBloc(competences[b]));
+    const notesValides = notesBlocs.filter((n) => n > 0);
 
-                <Grid item xs={12} sm={6} md={4}>
-                  <FormControl fullWidth size="small">
-                    <InputLabel id={`${noteId}-label`}>Note</InputLabel>
-                    <Select
-                      labelId={`${noteId}-label`}
-                      id={noteId}
-                      value={item.note || ""}
-                      label="Note"
+    if (notesValides.length === 0) return 0;
+    return (
+      notesValides.reduce((sum, n) => sum + parseFloat(n), 0) /
+      notesValides.length
+    ).toFixed(2);
+  }, [competences]);
+
+  // --- Rend une section dynamique avec note
+  const renderSection = (label, key, data = []) => {
+    const noteBloc = calculerNoteBloc(data);
+
+    return (
+      <Paper elevation={2} sx={{ p: 3, mb: 5, borderRadius: 2 }}>
+        <Typography variant="h6" gutterBottom sx={{ color: "primary.main" }}>
+          {label} (Note : {noteBloc} / 5)
+        </Typography>
+
+        {data.length === 0 ? (
+          <Typography color="text.secondary">Aucune donnée</Typography>
+        ) : (
+          data.map((item, index) => {
+            const noteId = `${key}-${index}-note`;
+
+            return (
+              <Box
+                key={`${key}-${index}`}
+                sx={{
+                  mb: 3,
+                  p: 2,
+                  border: "1px solid #eee",
+                  borderRadius: 1,
+                  backgroundColor: "#fafafa",
+                }}
+              >
+                <Grid container spacing={2} alignItems="center">
+                  <Grid item xs={12} md={5}>
+                    <Typography fontWeight="bold">{item.critere}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {item.description}
+                    </Typography>
+                  </Grid>
+
+                  {/* Note */}
+                  <Grid item xs={6} sm={4} md={2}>
+                    <FormControl size="small" sx={{ minWidth: 140 }}>
+                      <InputLabel id={`${noteId}-label`}>Note</InputLabel>
+                      <Select
+                        labelId={`${noteId}-label`}
+                        id={noteId}
+                        value={item.note || ""}
+                        label="Note"
+                        onChange={(e) =>
+                          handleChange(key, index, "note", e.target.value)
+                        }
+                      >
+                        {noteOptions.map((opt) => (
+                          <MenuItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+
+                  {/* Axe d'amélioration */}
+                  <Grid item xs={12} sm={8} md={5}>
+                    <TextField
+                      label="Axe d'amélioration"
+                      fullWidth
+                      size="small"
+                      value={item.axeAmelioration || ""}
                       onChange={(e) =>
-                        handleChange(key, index, "note", e.target.value)
+                        handleChange(
+                          key,
+                          index,
+                          "axeAmelioration",
+                          e.target.value
+                        )
                       }
-                    >
-                      {noteOptions.map((note) => (
-                        <MenuItem key={note} value={note}>
-                          {note}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                    />
+                  </Grid>
                 </Grid>
-
-                <Grid item xs={12} sm={6} md={4}>
-                  <TextField
-                    label="Axe d'amélioration"
-                    fullWidth
-                    size="small"
-                    value={item.axeAmelioration || ""}
-                    onChange={(e) =>
-                      handleChange(
-                        key,
-                        index,
-                        "axeAmelioration",
-                        e.target.value
-                      )
-                    }
-                  />
-                </Grid>
-              </Grid>
-            </Box>
-          );
-        })
-      )}
-    </Paper>
-  );
+              </Box>
+            );
+          })
+        )}
+      </Paper>
+    );
+  };
 
   return (
     <Box sx={{ width: "100%", maxWidth: 1100, mx: "auto", px: 2, py: 4 }}>
-      {renderSection("Savoir", "savoir", competences.savoir)}
-      {renderSection("Savoir-Faire", "savoirFaire", competences.savoirFaire)}
-      {renderSection("Savoir-Être", "savoirEtre", competences.savoirEtre)}
-      {renderSection("Discipline", "discipline", competences.discipline)}
+      {renderSection("Savoir", "savoir", competences.savoir || [])}
+      {renderSection(
+        "Savoir-Faire",
+        "savoirFaire",
+        competences.savoirFaire || []
+      )}
+      {renderSection(
+        "Savoir-Être",
+        "savoirEtre",
+        competences.savoirEtre || []
+      )}
+      {renderSection(
+        "Valeurs Hardie",
+        "valeursHardie",
+        competences.valeursHardie || []
+      )}
+      {renderSection(
+        "Discipline",
+        "discipline",
+        competences.discipline || []
+      )}
+
+      <Divider sx={{ my: 3 }} />
+      <Typography variant="h5" align="center" color="secondary">
+        🌍 Note Globale Compétences : {noteGlobaleCompetences} / 5
+      </Typography>
     </Box>
   );
 };
 
-// Fonction de comparaison d'objets simples avec tableaux imbriqués
-function shallowEqualArrayObject(obj1, obj2) {
-  if (obj1 === obj2) return true;
+// 🔒 Comparaison profonde
+function deepEqual(a, b) {
+  if (a === b) return true;
   if (
-    typeof obj1 !== "object" ||
-    typeof obj2 !== "object" ||
-    obj1 === null ||
-    obj2 === null
+    typeof a !== "object" ||
+    typeof b !== "object" ||
+    a === null ||
+    b === null
   )
     return false;
 
-  const keys1 = Object.keys(obj1);
-  const keys2 = Object.keys(obj2);
-  if (keys1.length !== keys2.length) return false;
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
+  if (keysA.length !== keysB.length) return false;
 
-  for (let key of keys1) {
-    const val1 = obj1[key];
-    const val2 = obj2[key];
+  for (const key of keysA) {
+    const valA = a[key];
+    const valB = b[key];
 
-    if (Array.isArray(val1) && Array.isArray(val2)) {
-      if (val1.length !== val2.length) return false;
-      for (let i = 0; i < val1.length; i++) {
-        if (JSON.stringify(val1[i]) !== JSON.stringify(val2[i])) return false;
+    if (Array.isArray(valA) && Array.isArray(valB)) {
+      if (valA.length !== valB.length) return false;
+      for (let i = 0; i < valA.length; i++) {
+        if (!deepEqual(valA[i], valB[i])) return false;
       }
-    } else if (val1 !== val2) {
+    } else if (!deepEqual(valA, valB)) {
       return false;
     }
   }
-
   return true;
 }
 

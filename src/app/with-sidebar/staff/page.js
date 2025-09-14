@@ -5,6 +5,8 @@ import { Users, Plus, Search, Filter, Edit, Trash2, Eye, Building2, Mail, Calend
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
+import EvaluationSelectorButton from '@/components/EvaluationSelectorButton';
+import FicheSelectorButton from '@/components/FicheSelectorButton';
 
 
 const PersonnelPage = () => {
@@ -25,6 +27,8 @@ const PersonnelPage = () => {
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm();
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   const router = useRouter();
+
+
 
 
   const decodeToken = (token) => {
@@ -187,7 +191,7 @@ const PersonnelPage = () => {
       }
     }
 
-    if (typeContrat === "Stagiaire") {
+    if (typeContrat === "Stage") {
       if (!data.dateDebutStage) {
         alert("Date de début de stage requise.");
         return;
@@ -204,14 +208,14 @@ const PersonnelPage = () => {
       prenom: data.prenom,
       email: data.email,
       poste: data.poste,
-      departement: data.departement,
+      departement: data.departement || null,
       typeContrat: data.typeContrat,
       dateEmbauche:
         typeContrat === "CDI" || typeContrat === "CDD" ? data.dateEmbauche : null,
       dateFinContrat:
         typeContrat === "CDD" ? data.dateFinContrat : null,
-      dateDebutStage: typeContrat === "Stagiaire" ? data.dateDebutStage : null,
-      dateFinStage: typeContrat === "Stagiaire" ? data.dateFinStage : null,
+      dateDebutStage: typeContrat === "Stage" ? data.dateDebutStage : null,
+      dateFinStage: typeContrat === "Stage" ? data.dateFinStage : null,
     };
 
     try {
@@ -230,7 +234,7 @@ const PersonnelPage = () => {
       }
 
       const result = await res.json();
-      setStaff((prev) => [...prev, result.staff]); // result.staff car le backend retourne { message, staff }
+      setStaff((prev) => [...prev, result.staff]);
       alert("Employé ajouté avec succès !");
       reset();
       setShowAddModal(false);
@@ -469,11 +473,12 @@ const PersonnelPage = () => {
                 <option value="">-- Type de contrat *</option>
                 <option value="CDI">CDI</option>
                 <option value="CDD">CDD</option>
-                <option value="Stagiaire">Stage</option>
+                <option value="stage">Stage</option>
               </select>
               {errors.typeContrat && <p className="text-red-500 text-sm">{errors.typeContrat.message}</p>}
 
               {/* Champs dynamiques en fonction du contrat */}
+              {/* Champs pour un CDD */}
               {watch("typeContrat") === "CDD" && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <label className="text-sm text-gray-600">
@@ -496,7 +501,21 @@ const PersonnelPage = () => {
                 </div>
               )}
 
-              {watch("typeContrat") === "Stagiaire" && (
+              {/* Champs pour un CDI */}
+              {watch("typeContrat") === "CDI" && (
+                <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+                  <label className="text-sm text-gray-600">
+                    Date d&apos;embauche *
+                    <input
+                      type="date"
+                      {...register("dateEmbauche", { required: "Date d'embauche requise pour un CDI" })}
+                      className={`border px-4 py-2 rounded-lg w-full mt-1 ${errors.dateEmbauche ? 'border-red-500' : ''}`}
+                    />
+                  </label>
+                </div>
+              )}
+
+              {watch("typeContrat") === "Stage" && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <label className="text-sm text-gray-600">
                     Début de stage *
@@ -551,7 +570,7 @@ const PersonnelPage = () => {
               ✕
             </button>
 
-            <h2 className="text-xl font-bold mb-4 text-blue-600">Modifier l&apos;employé</h2>
+            <h2 className="text-xl font-bold mb-4 text-blue-600">Modifier les informations de l&apos;employé</h2>
 
             <form onSubmit={handleSubmit(onSubmitUpdate)} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -590,7 +609,7 @@ const PersonnelPage = () => {
                 <option value="">-- Type de contrat *</option>
                 <option value="CDI">CDI</option>
                 <option value="CDD">CDD</option>
-                <option value="Stagiaire">Stage</option>
+                <option value="Stage">Stage</option>
               </select>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -692,44 +711,56 @@ const PersonnelPage = () => {
                     <Calendar className="h-4 w-4 text-gray-400" />
                     <span className="text-sm text-gray-600">{employee.typeContrat}</span>
                   </div>
+
                   {employee.dateFinContrat && (() => {
                     const today = new Date();
                     const endDate = new Date(employee.dateFinContrat);
-                    const diffInDays = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+                    const diffInMs = endDate - today;
+                    const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
 
                     if (diffInDays <= 14) {
-                      return (
-                        <span className="text-sm font-medium text-red-600">
-                          Expire le {endDate.toLocaleDateString('fr-FR')}
-                        </span>
-                      );
+                      const formattedDate = endDate.toLocaleDateString("fr-FR", {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      });
+
+                      if (diffInDays < 0) {
+                        return (
+                          <span className="text-sm font-medium text-red-600">
+                            Expiré depuis {Math.abs(diffInDays)} jour{Math.abs(diffInDays) > 1 ? "s" : ""}
+                          </span>
+                        );
+                      } else {
+                        return (
+                          <span className="text-sm font-medium text-red-600">
+                            Expire le {formattedDate}
+                          </span>
+                        );
+                      }
                     }
+
                     return null;
                   })()}
                 </div>
+
                 {/* Actions */}
                 <div className="mt-4 pt-4 border-t border-gray-200">
-                  <div className="flex space-x-2">
+                  <div className="flex flex-wrap gap-2">
                     <button
                       onClick={() => handleViewEvaluations(employee._id)}
                       className="flex-1 bg-blue-50 text-blue-700 hover:bg-blue-100 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
                     >
                       Voir évaluations
                     </button>
-                    {employee.managerId === user?.id && (
-                      <button
-                        className="flex-1 bg-green-50 text-green-700 hover:bg-green-100 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
-                        onClick={() => {
-                          setSelectedStaffId(employee._id);
-                          setShowEvaluationTypeModal(true);
-                        }}
-                      >
-                        Nouvelle évaluation
-                      </button>
+                    <FicheSelectorButton employee={employee} />
+                    {user?.role === 'Manager' && (
+                      <EvaluationSelectorButton employee={employee} />
                     )}
-
                   </div>
                 </div>
+
 
               </div>
             </div>
@@ -745,7 +776,7 @@ const PersonnelPage = () => {
           <p className="text-gray-600">Aucun employé ne correspond à vos critères de recherche.</p>
         </div>
       )}
-      {showEvaluationTypeModal && (
+      {showEvaluationTypeModal && user?.role !== 'RH' && (
         <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex items-center justify-center">
           <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-sm relative">
             <button
@@ -760,7 +791,7 @@ const PersonnelPage = () => {
                 onClick={() => {
                   const dateEvaluation = dayjs().format('YYYY-MM-DD');
                   setShowEvaluationTypeModal(false);
-                  router.push(`/with-sidebar/evaluations/new/${selectedStaffId}?type=standard&date=${dateEvaluation}`);
+                  router.push(`/with-sidebar/evaluations/new/${selectedStaffId}?date=${dateEvaluation}`);
                 }}
                 className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
               >
@@ -776,11 +807,11 @@ const PersonnelPage = () => {
               >
                 Évaluation de potentiel
               </button>
-
             </div>
           </div>
         </div>
       )}
+
 
 
     </div>

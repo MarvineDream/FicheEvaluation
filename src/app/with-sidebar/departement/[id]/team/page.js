@@ -2,9 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Typography, Box, Grid, Paper, Button } from '@mui/material';
+import { Typography, Box, Grid, Paper, Button, Avatar, Stack } from '@mui/material';
 import PeopleIcon from '@mui/icons-material/People';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import WorkIcon from '@mui/icons-material/Work';
+import MailOutlineIcon from '@mui/icons-material/MailOutline';
+import BadgeIcon from '@mui/icons-material/Badge';
 
 const API_BASE = 'http://localhost:7000';
 
@@ -64,7 +67,8 @@ export default function DepartmentTeamPage() {
         Retour
       </Button>
 
-      <Typography variant="h4" fontWeight="bold" color="primary" gutterBottom>
+      {/* Titre */}
+      <Typography variant="h4" fontWeight="bold" color="#4caf50" gutterBottom>
         <PeopleIcon sx={{ mr: 1 }} />
         Équipe du département : {department.name}
       </Typography>
@@ -74,22 +78,48 @@ export default function DepartmentTeamPage() {
           Aucun employé dans ce département.
         </Typography>
       ) : (
-        <Grid container spacing={3} mt={2}>
+        <Grid container spacing={4} mt={2}>
           {employees.map(emp => (
             <Grid item xs={12} sm={6} md={4} key={emp._id}>
-              <Paper elevation={3} sx={{ p: 2, borderRadius: 2 }}>
-                <Typography variant="h6">
+              <Paper
+                elevation={4}
+                sx={{
+                  p: 3,
+                  borderRadius: 3,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  textAlign: 'center',
+                  transition: '0.3s',
+                  '&:hover': { boxShadow: 8, transform: 'translateY(-3px)' },
+                }}
+              >
+                {/* Avatar ou logo */}
+                <Avatar
+                  sx={{ width: 64, height: 64, mb: 2, bgcolor: 'primary.light' }}
+                >
+                  {emp.nom?.[0] || <PeopleIcon />}
+                </Avatar>
+
+                {/* Nom et poste */}
+                <Typography variant="h6" fontWeight="bold">
                   {emp.nom} {emp.prenom}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {emp.poste}
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  <WorkIcon fontSize="small" sx={{ mr: 0.5 }} />
+                  {emp.poste || 'N/A'}
                 </Typography>
-                <Typography variant="body2">
-                  Type de contrat : {emp.typeContrat || 'N/A'}
-                </Typography>
-                <Typography variant="body2">
-                  Email : {emp.email}
-                </Typography>
+
+                <Stack spacing={0.5}>
+                  <Typography variant="body2" color="text.secondary">
+                    <BadgeIcon fontSize="small" sx={{ mr: 0.5 }} />
+                    Type de contrat : {emp.typeContrat || 'N/A'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    <MailOutlineIcon fontSize="small" sx={{ mr: 0.5 }} />
+                    {emp.email}
+                  </Typography>
+                </Stack>
               </Paper>
             </Grid>
           ))}

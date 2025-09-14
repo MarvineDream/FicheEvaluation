@@ -12,7 +12,7 @@ import { useTheme } from '@mui/material/styles';
 
 import {
   User, UsersRound, TrendingUp,
-  BarChart3, LineChart, PieChart
+  BarChart3, LineChart
 } from "lucide-react";
 
 import {
@@ -27,7 +27,7 @@ import {
   ArcElement
 } from "chart.js";
 
-import { Bar, Line, Pie } from "react-chartjs-2";
+import { Bar, Line } from "react-chartjs-2";
 
 ChartJS.register(
   CategoryScale,
@@ -51,27 +51,30 @@ export default function DashboardRHAdmin() {
     departement: ""
   });
 
-  const [data, setData] = useState([]);
   const [departements, setDepartements] = useState([]);
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
-  const [staffEvolutionData, setStaffEvolutionData] = useState([]);
+  const [staffEvolutionData, setStaffEvolutionData] = useState(null);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
+  // ✅ Helper pour récupérer le token
+  const getToken = () => localStorage.getItem("token");
+
   useEffect(() => {
-    const stored = localStorage.getItem("user");
-    if (stored) setUser(JSON.parse(stored));
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) setUser(JSON.parse(storedUser));
     fetchStats();
   }, []);
-
 
   useEffect(() => {
     const fetchDepartements = async () => {
       try {
-        const token = JSON.parse(localStorage.getItem("user"))?.token;
+        const token = getToken();
+        if (!token) throw new Error("Token manquant, reconnectez-vous.");
+
         const res = await fetch("http://localhost:7000/departement", {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -85,10 +88,11 @@ export default function DashboardRHAdmin() {
     fetchDepartements();
   }, []);
 
-
   const fetchStats = async () => {
     try {
-      const token = JSON.parse(localStorage.getItem("user"))?.token;
+      const token = getToken();
+      if (!token) throw new Error("Token manquant, reconnectez-vous.");
+
       const res = await fetch("http://localhost:7000/staff/stats", {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -110,7 +114,9 @@ export default function DashboardRHAdmin() {
     setSuccessMsg("");
 
     try {
-      const token = JSON.parse(localStorage.getItem("user"))?.token;
+      const token = getToken();
+      if (!token) throw new Error("Token manquant, reconnectez-vous.");
+
       const res = await fetch("http://localhost:7000/auth/creer", {
         method: "POST",
         headers: {
@@ -122,7 +128,7 @@ export default function DashboardRHAdmin() {
 
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.message || "Erreur");
+        throw new Error(err.message || "Erreur lors de la création");
       }
 
       setSuccessMsg("✅ Utilisateur créé avec succès !");
@@ -135,40 +141,38 @@ export default function DashboardRHAdmin() {
   };
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchEvolution = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:7000/staff/evolution', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const token = getToken();
+        if (!token) throw new Error("Token manquant, reconnectez-vous.");
+
+        const response = await fetch("http://localhost:7000/staff/evolution", {
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         const data = await response.json();
-
-        // Adapter les données pour Chart.js
         const labels = data?.map((item) => item.mois) || [];
         const values = data?.map((item) => item.total) || [];
-
 
         setStaffEvolutionData({
           labels,
           datasets: [
             {
-              label: 'Nombre de personnels',
+              label: "Nombre de personnels",
               data: values,
-              fill: false,
-              borderColor: 'rgb(34,197,94)',
+              fill: true,
+              borderColor: "rgb(34,197,94)",
+              backgroundColor: "rgba(34,197,94,0.3)",
               tension: 0.3,
             },
           ],
         });
       } catch (error) {
-        console.error('Erreur chargement staff evolution :', error);
+        console.error("Erreur chargement staff evolution :", error);
       }
     };
 
-    fetchData();
+    fetchEvolution();
   }, []);
 
   if (!user || !stats) {
@@ -189,23 +193,6 @@ export default function DashboardRHAdmin() {
     }]
   };
 
-  const staffEvolutionChartData = {
-    labels: staffEvolutionData.labels || [],
-    datasets: [
-      {
-        label: "Évolution du personnel",
-        data: staffEvolutionData.datasets?.length > 0
-          ? staffEvolutionData.datasets[0].data
-          : [],
-        borderColor: "#2E7D32",
-        backgroundColor: "rgba(46,125,50,0.3)",
-        fill: true,
-        tension: 0.4,
-      },
-    ],
-  };
-
-
   const contractStatusData = {
     labels: ["Actifs", "Expirés", "Renouvelés"],
     datasets: [{
@@ -222,6 +209,7 @@ export default function DashboardRHAdmin() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
+      {/* Profil utilisateur */}
       <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
         <Stack direction="row" spacing={2} alignItems="center">
           <Avatar sx={{ bgcolor: "#2E7D32" }}>
@@ -236,18 +224,25 @@ export default function DashboardRHAdmin() {
         </Stack>
       </Paper>
 
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={4}>
+      {/* Stats */}
+      <Grid container spacing={3} justifyContent="center" alignItems="stretch">
+        <Grid item xs={12} sm={6} md={4}>
           <StatCard title="Total du personnel" value={stats.totalStaff} Icon={UsersRound} />
         </Grid>
-        <Grid item xs={12} md={4}>
-          <StatCard title="Nouveaux employés" value={stats.nouveauxEmployes} Icon={User} />
+        <Grid item xs={12} sm={6} md={4}>
+          <StatCard title="Nouveaux employés" value={stats.nouveauxEmployes ?? 0} Icon={User} />
         </Grid>
-        <Grid item xs={12} md={4}>
-          <StatCard title="Départs récents" value={stats.departRecents} Icon={TrendingUp} />
+        <Grid item xs={12} sm={6} md={4}>
+          <StatCard
+            title="Employés évalués ce mois"
+            value={stats.evaluationsCeMois ?? 0}
+            Icon={TrendingUp}
+          />
         </Grid>
       </Grid>
 
+
+      {/* Graphique : type de contrat */}
       <Box mt={6}>
         <Typography variant="h6" className="flex items-center gap-2">
           <BarChart3 className="text-green-600" /> Répartition par type de contrat
@@ -257,15 +252,15 @@ export default function DashboardRHAdmin() {
         </Paper>
       </Box>
 
+      {/* Graphique : évolution personnel */}
       <Box mt={6}>
         <Typography variant="h6" className="flex items-center gap-2">
           <LineChart className="text-green-600" /> Évolution du personnel
         </Typography>
-
         <Paper sx={{ p: 3, mt: 2 }}>
-          {staffEvolutionData?.labels?.length > 0 ? (
+          {staffEvolutionData ? (
             <Line
-              data={staffEvolutionChartData}
+              data={staffEvolutionData}
               options={{
                 responsive: true,
                 maintainAspectRatio: !isMobile,
@@ -274,13 +269,8 @@ export default function DashboardRHAdmin() {
                   title: { display: true, text: 'Personnel par mois' },
                 },
                 scales: {
-                  x: {
-                    title: { display: true, text: 'Mois' },
-                  },
-                  y: {
-                    title: { display: true, text: 'Effectif' },
-                    beginAtZero: true,
-                  },
+                  x: { title: { display: true, text: 'Mois' } },
+                  y: { beginAtZero: true, title: { display: true, text: 'Effectif' } },
                 },
               }}
             />
@@ -288,11 +278,9 @@ export default function DashboardRHAdmin() {
             <Typography>Chargement des données...</Typography>
           )}
         </Paper>
-
       </Box>
 
-
-
+      {/* Répartition par département */}
       <Box mt={6}>
         <Typography variant="h6">🧾 Répartition par département</Typography>
         <Paper sx={{ mt: 2 }}>
@@ -307,6 +295,7 @@ export default function DashboardRHAdmin() {
         </Paper>
       </Box>
 
+      {/* Formulaire création utilisateur */}
       {user.role === "RH" && (
         <Box mt={6}>
           <Typography variant="h6" gutterBottom>
@@ -380,8 +369,6 @@ export default function DashboardRHAdmin() {
           </Paper>
         </Box>
       )}
-
-
     </Container>
   );
 }
